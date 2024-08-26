@@ -72,6 +72,7 @@ app.get("/auth", async (req, res) => {
         secure: true,
         sameSite: "Strict",
       });
+      window.localStorage.setItem("authToken", response.data.access_token)
       res.redirect(`https://kitchenkit.onrender.com`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
