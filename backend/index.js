@@ -68,8 +68,6 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token, {
-        httpOnly: true,
-        secure: true, // Ensure this is true in production
         sameSite: "None", // This is required for cross-site cookies
       });
       res.redirect(`https://kitchenkit.onrender.com`);
