@@ -13,8 +13,8 @@ export const AuthProvider = ({ children }) => {
     if (authToken) {
       setUser(true);
     } else {
-      window.location.href =
-        "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code";
+      // window.location.href =
+      //   "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code";
     }
   }, []);
 
