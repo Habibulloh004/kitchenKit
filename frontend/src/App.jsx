@@ -23,15 +23,15 @@ export const TokenContext = createContext(null);
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
-  // const [token] = useContext(TokenContext);
-  return element
-    // : (window.location.href =
-    //     "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code");
+  const [token] = useContext(TokenContext);
+  return token
+    ? element
+    : (window.location.href =
+        "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code");
 };
 function App() {
   const [screenSize, setScreenSize] = useState(600);
   const [token, setToken] = useState(Cookies.get("authToken"));
-  
   useEffect(() => {
     const currentTime = new Date().getTime();
     const sixMonthsInMilliseconds = 6 * 30 * 24 * 60 * 60 * 1000;
