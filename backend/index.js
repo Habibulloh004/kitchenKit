@@ -11,28 +11,34 @@ import { Order } from "./models/order.model.js";
 dotenv.config();
 // https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code
 
-// const corsOptions = {
-//   origin: ["*", "https://kitchenkit.onrender.com"],
-//   allowedHeaders: ["Content-Type"],
-//   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-//   credentials: true,
-// };
 const corsOptions = {
-  origin: "https://kitchenkit.onrender.com", // Allow your React app's origin
-  methods: ["GET", "POST", "PUT", "DELETE"], // Allow only GET and POST requests
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow only headers with Content-Type and Authorization
+  origin: ["*", "https://kitchenkit.onrender.com"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  credentials: true,
 };
+// const corsOptions = {
+//   origin: "https://kitchenkit.onrender.com", // Allow your React app's origin
+//   methods: ["GET", "POST", "PUT", "DELETE"], // Allow only GET and POST requests
+//   allowedHeaders: ["Content-Type", "Authorization"], // Allow only headers with Content-Type and Authorization
+// };
 
 const port = process.env.PORT || 3000;
 const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+// app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+// });
 
+// Root route
+
+// io.on("changeOrderDetails", (data) => {
+//   console.log(data);
+//   // io.to(data.data.accountData.accountUrl).emit(data)
+// })
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Express.js server!");

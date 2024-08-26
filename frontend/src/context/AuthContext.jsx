@@ -12,6 +12,9 @@ export const AuthProvider = ({ children }) => {
     const authToken = Cookies.get("authToken");
     if (authToken) {
       setUser(true);
+    } else {
+      window.location.href =
+        "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code";
     }
   }, []);
 
