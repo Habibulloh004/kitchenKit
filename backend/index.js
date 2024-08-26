@@ -9,16 +9,16 @@ import mongoose from "mongoose";
 import { Order } from "./models/order.model.js";
 
 dotenv.config();
-// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code
+// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=process.env.BACKEND/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "https://kitchenkit.onrender.com"],
+  origin: ["*", "${process.env.BACKEND}"],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
 // const corsOptions = {
-//   origin: "https://kitchenkit.onrender.com", // Allow your React app's origin
+//   origin: "process.env.BACKEND", // Allow your React app's origin
 //   methods: ["GET", "POST", "PUT", "DELETE"], // Allow only GET and POST requests
 //   allowedHeaders: ["Content-Type", "Authorization"], // Allow only headers with Content-Type and Authorization
 // };
@@ -28,10 +28,10 @@ const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+// app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+// });
 
 // Root route
 
@@ -56,7 +56,7 @@ app.get("/auth", async (req, res) => {
     formData.append("application_id", auth.application_id);
     formData.append("application_secret", auth.application_secret);
     formData.append("grant_type", "authorization_code");
-    formData.append("redirect_uri", "https://kitchenkit.onrender.com/auth");
+    formData.append("redirect_uri", `${process.env.BACKEND}/auth`);
     formData.append("code", auth.code);
     try {
       const response = await axios.post(
@@ -67,8 +67,8 @@ app.get("/auth", async (req, res) => {
         }
       );
       console.log("Access token response data:", response.data);
-      // res.cookie("authToken", response.data.access_token);
-      res.redirect(`https://kitchen-kit-front.vercel.app?token=${response.data.access_token}`);
+      res.cookie("authToken", response.data.access_token);
+      res.redirect(`${process.env.BACKEND}?token=${response.data.access_token}`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");

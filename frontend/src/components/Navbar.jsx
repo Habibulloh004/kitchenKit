@@ -46,7 +46,7 @@ const Navbar = () => {
           <button
             onClick={() => {
               window.location.href =
-                "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code";
+                `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${import.meta.env.VITE_BACKEND}/auth&response_type=code`;
             }}
           >
             Auth

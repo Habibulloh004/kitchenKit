@@ -14,7 +14,7 @@ export const SocketContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (userDeatails) {
-      const socket = io("https://kitchenkit.onrender.com", {
+      const socket = io(`${import.meta.env.VITE_BACKEND}`, {
         query: {
           companyId: userDeatails.COMPANY_ID,
         },
