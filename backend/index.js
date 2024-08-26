@@ -12,7 +12,7 @@ dotenv.config();
 // https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "kitchen-kit-front.vercel.app"],
+  origin: ["*", "https://kitchenkit.onrender.com"],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
@@ -45,8 +45,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/auth", async (req, res) => {
-  console.log("req.body: ", req.body);
-  console.log("req.query: ", req.query);
   if (req.query.code) {
     const auth = {
       application_id: 3544,
@@ -69,13 +67,8 @@ app.get("/auth", async (req, res) => {
         }
       );
       console.log("Access token response data:", response.data);
-      window.localStorage.setItem("authToken", response.data.access_token)
-      res.cookie("authToken", response.data.access_token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'None'
-      });
-      res.redirect(`https://kitchen-kit-front.vercel.app`);
+      res.cookie("authToken", response.data.access_token);
+      res.redirect(`https://kitchenkit.onrender.com?token=${response.data.access_token}`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
