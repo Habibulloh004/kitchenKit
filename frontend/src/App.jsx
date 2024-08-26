@@ -19,7 +19,7 @@ const ProtectedRoute = ({ element }) => {
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
 
-  return token && haveToken
+  return token || haveToken
     ? element
     : (window.location.href =
         "https://joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code");
@@ -28,16 +28,6 @@ const ProtectedRoute = ({ element }) => {
 function App() {
   const [screenSize, setScreenSize] = useState(600);
   const [token] = useState(Cookies.get("authToken"));
-  const navigate = useNavigate()
-
-  const queryParams = new URLSearchParams(location.search);
-  const haveToken = queryParams.get("token");
-  useEffect(() => {
-    if(haveToken) {
-      Cookies.set("authToken", haveToken);
-      navigate("/")
-    }
-  }, [])
 
   useEffect(() => {
     const currentTime = new Date().getTime();

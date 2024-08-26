@@ -7,8 +7,10 @@ import { useSocketContext } from "../context/SocketContext";
 import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
   const token = Cookies.get("authToken");
   const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
@@ -22,6 +24,16 @@ const Home = () => {
   });
   const { data, toggleDialog, masterOrderInfo, masterBarInfo, isOpen } =
     useDataContext();
+
+  const queryParams = new URLSearchParams(location.search);
+  const haveToken = queryParams.get("token");
+  
+  useEffect(() => {
+    if (haveToken) {
+      Cookies.set("authToken", haveToken);
+      navigate("/");
+    }
+  }, []);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -52,9 +64,12 @@ const Home = () => {
     const getOrders = async () => {
       if (accountSettings) {
         try {
-          const result = await axios.post(`https://kitchenkit.onrender.com/getOrders`, {
-            accountUrl: accountSettings.COMPANY_ID,
-          });
+          const result = await axios.post(
+            `https://kitchenkit.onrender.com/getOrders`,
+            {
+              accountUrl: accountSettings.COMPANY_ID,
+            }
+          );
           setOrders(result.data);
         } catch (error) {
           console.error("Error fetching orders:", error);
