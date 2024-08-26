@@ -7,10 +7,8 @@ import { useSocketContext } from "../context/SocketContext";
 import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const navigate = useNavigate();
   const token = Cookies.get("authToken");
   const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
@@ -210,6 +208,7 @@ const Home = () => {
       console.error("Error closing transaction", error);
     }
   };
+  console.log(data);
 
   if (!data) {
     return <Loader />;

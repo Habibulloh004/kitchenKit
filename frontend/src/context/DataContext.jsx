@@ -31,7 +31,7 @@ export const DataContextProvider = ({ children }) => {
   const { data } = useQuery({
     queryKey: ["getWaiters"],
     queryFn: () =>
-      fetch(`process.env.BACKEND/getWaiters?token=${token}`)
+      fetch(`${import.meta.env.VITE_BACKEND}/getWaiters?token=${token}`)
         .then((res) => res.json())
         .then((res) => res.response),
   });

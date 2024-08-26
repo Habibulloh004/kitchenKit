@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["*", "${process.env.BACKEND}", "https://joinposter.com/", "https://platform.joinposter.com"],
+    origin: ["*", `http://localhost:5173`, "https://joinposter.com/", "https://platform.joinposter.com"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },

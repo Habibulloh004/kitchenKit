@@ -9,29 +9,23 @@ import mongoose from "mongoose";
 import { Order } from "./models/order.model.js";
 
 dotenv.config();
-// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=process.env.BACKEND/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "${process.env.BACKEND}"],
+  origin: ["*", "http://localhost:5173"],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 };
-// const corsOptions = {
-//   origin: "process.env.BACKEND", // Allow your React app's origin
-//   methods: ["GET", "POST", "PUT", "DELETE"], // Allow only GET and POST requests
-//   allowedHeaders: ["Content-Type", "Authorization"], // Allow only headers with Content-Type and Authorization
-// };
 
 const port = process.env.PORT || 3000;
 const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+// app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+// });
 
 // Root route
 
@@ -44,7 +38,23 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Express.js server!");
 });
 
+app.get("/hey", (req, res) => {
+  console.log(req);
+  console.log("====================");
+  console.log("====================");
+  console.log("====================");
+  console.log("====================");
+  console.log("====================");
+  res.send(req);
+})
+
 app.get("/auth", async (req, res) => {
+  console.log("req: ", req);
+  console.log("================");
+  console.log("================");
+  console.log("================");
+  console.log("================");
+  console.log("================");
   if (req.query.code) {
     const auth = {
       application_id: 3544,
@@ -68,7 +78,7 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token);
-      res.redirect(`${process.env.BACKEND}?token=${response.data.access_token}`);
+      res.redirect(`http://localhost:5173?token=${response.data.access_token}`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");

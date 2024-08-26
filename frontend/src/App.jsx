@@ -15,15 +15,16 @@ const History = lazy(() => import("./components/History"));
 const ProtectedRoute = ({ element }) => {
   const location = useLocation();
   const [token] = useState(Cookies.get("authToken"));
-  
+
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
 
-  return haveToken
+  return token
     ? element
-    : element
-    // (window.location.href =
-    //     "https://joinposter.com/api/auth?application_id=3544&redirect_uri=process.env.BACKEND/auth&response_type=code");
+    : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+        import.meta.env.VITE_BACKEND
+      }/auth&response_type=code`);
+  // : element
 };
 
 function App() {
