@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, lazy, Suspense, useLayoutEffect } from "react";
 import Loader from "./components/Loader/Loader";
