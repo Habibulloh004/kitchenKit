@@ -12,13 +12,13 @@ dotenv.config();
 // https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code
 
 // const corsOptions = {
-//   origin: ["*", "http://localhost:5173"],
+//   origin: ["*", "https://kitchenkit.onrender.com"],
 //   allowedHeaders: ["Content-Type"],
 //   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 //   credentials: true,
 // };
 const corsOptions = {
-  origin: "http://localhost:5173", // Allow your React app's origin
+  origin: "https://kitchenkit.onrender.com", // Allow your React app's origin
   methods: ["GET", "POST", "PUT", "DELETE"], // Allow only GET and POST requests
   allowedHeaders: ["Content-Type", "Authorization"], // Allow only headers with Content-Type and Authorization
 };
@@ -62,7 +62,7 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token);
-      res.redirect(`http://localhost:5173`);
+      res.redirect(`https://kitchenkit.onrender.com`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
