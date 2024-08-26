@@ -72,7 +72,7 @@ app.get("/auth", async (req, res) => {
       res.cookie("authToken", response.data.access_token, {
         sameSite: 'None'
       });
-      res.redirect(`kitchen-kit-front.vercel.app`);
+      res.redirect(`https://kitchen-kit-front.vercel.app`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
