@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 import { Order } from "./models/order.model.js";
 
 dotenv.config();
-// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=http://localhost:9000/auth&response_type=code
+// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=https://kitchenkit.onrender.com/auth&response_type=code
 
 // const corsOptions = {
 //   origin: ["*", "http://localhost:5173"],
@@ -50,7 +50,7 @@ app.get("/auth", async (req, res) => {
     formData.append("application_id", auth.application_id);
     formData.append("application_secret", auth.application_secret);
     formData.append("grant_type", "authorization_code");
-    formData.append("redirect_uri", "http://localhost:9000/auth");
+    formData.append("redirect_uri", "https://kitchenkit.onrender.com/auth");
     formData.append("code", auth.code);
     try {
       const response = await axios.post(

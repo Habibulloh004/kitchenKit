@@ -31,7 +31,7 @@ export const DataContextProvider = ({ children }) => {
   const { data } = useQuery({
     queryKey: ["getWaiters"],
     queryFn: () =>
-      fetch(`http://localhost:9000/getWaiters?token=${token}`)
+      fetch(`https://kitchenkit.onrender.com/getWaiters?token=${token}`)
         .then((res) => res.json())
         .then((res) => res.response),
   });

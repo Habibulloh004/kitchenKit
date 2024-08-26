@@ -14,7 +14,7 @@ export const SocketContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (userDeatails) {
-      const socket = io("http://localhost:9000", {
+      const socket = io("https://kitchenkit.onrender.com", {
         query: {
           companyId: userDeatails.COMPANY_ID,
         },

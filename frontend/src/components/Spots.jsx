@@ -14,7 +14,7 @@ const Spots = () => {
       if (token) {
         try {
           const result = await axios.get(
-            `http://localhost:9000/getSpots?token=${token}`
+            `https://kitchenkit.onrender.com/getSpots?token=${token}`
           );
           setSpots(result.data);
         } catch (error) {

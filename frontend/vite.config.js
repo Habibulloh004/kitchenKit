@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   proxy: {
     "/api": {
-      target: "http://localhost:9000",
+      target: "https://kitchenkit.onrender.com",
     },
   },
   plugins: [react()],

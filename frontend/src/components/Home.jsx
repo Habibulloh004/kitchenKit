@@ -29,7 +29,7 @@ const Home = () => {
       if (!accountSettings) {
         try {
           const resultToken = await axios.get(
-            `http://localhost:9000/checkToken?token=${token}`
+            `https://kitchenkit.onrender.com/checkToken?token=${token}`
           );
           accountSettings = resultToken.data.response;
           localStorage.setItem(
@@ -52,7 +52,7 @@ const Home = () => {
     const getOrders = async () => {
       if (accountSettings) {
         try {
-          const result = await axios.post(`http://localhost:9000/getOrders`, {
+          const result = await axios.post(`https://kitchenkit.onrender.com/getOrders`, {
             accountUrl: accountSettings.COMPANY_ID,
           });
           setOrders(result.data);
@@ -110,7 +110,7 @@ const Home = () => {
   const changeStatus = async (orderId, item, status) => {
     try {
       const productChangeStatus = await axios.put(
-        `http://localhost:9000/changeOrderStatus/${orderId}`,
+        `https://kitchenkit.onrender.com/changeOrderStatus/${orderId}`,
         { item }
       );
 
@@ -183,7 +183,7 @@ const Home = () => {
   const closeTransaction = async (orderId) => {
     try {
       const response = await axios.delete(
-        `http://localhost:9000/closeTransaction/${orderId}`
+        `https://kitchenkit.onrender.com/closeTransaction/${orderId}`
       );
       console.log(response.data);
 
