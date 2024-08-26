@@ -25,15 +25,15 @@ const Home = () => {
   const { data, toggleDialog, masterOrderInfo, masterBarInfo, isOpen } =
     useDataContext();
 
-  const queryParams = new URLSearchParams(location.search);
-  const haveToken = queryParams.get("token");
-  
-  useEffect(() => {
-    if (haveToken) {
-      Cookies.set("authToken", haveToken);
-      navigate("/");
-    }
-  }, []);
+  // const queryParams = new URLSearchParams(location.search);
+  // const haveToken = queryParams.get("token");
+
+  // useEffect(() => {
+  //   if (haveToken) {
+  //     Cookies.set("authToken", haveToken);
+  //     navigate("/");
+  //   }
+  // }, []);
 
   useEffect(() => {
     const checkToken = async () => {
