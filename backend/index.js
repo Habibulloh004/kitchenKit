@@ -48,7 +48,7 @@ app.get("/auth", async (req, res) => {
   if (req.query.code) {
     const auth = {
       application_id: 3544,
-      application_secret: process.env.APPLICATION_SECRET, // Use env variable
+      application_secret: "586a61d2f3a718c1d6daeb847e690230",
       code: req.query.code,
       account: req.query.account,
     };
@@ -72,12 +72,10 @@ app.get("/auth", async (req, res) => {
         secure: true,
         sameSite: "Strict",
       });
+      window.localStorage.setItem("authToken", response.data.access_token)
       res.redirect(`https://kitchenkit.onrender.com`);
     } catch (error) {
-      console.error(
-        "Error exchanging code for access token:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
     }
   } else {
