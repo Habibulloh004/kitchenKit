@@ -69,7 +69,10 @@ app.get("/auth", async (req, res) => {
         }
       );
       console.log("Access token response data:", response.data);
+      window.localStorage.setItem("authToken", response.data.access_token)
       res.cookie("authToken", response.data.access_token, {
+        httpOnly: true,
+        secure: true,
         sameSite: 'None'
       });
       res.redirect(`https://kitchen-kit-front.vercel.app`);
