@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import {
   createContext,
-  useContext,
+  // useContext,
   useState,
   useEffect,
   lazy,
@@ -48,7 +48,7 @@ function App() {
     } else {
       localStorage.setItem("savedTime", currentTime.toString());
     }
-  }, []);
+  }, [token]);
 
   function resizeHandler() {
     setScreenSize(window.innerWidth);
