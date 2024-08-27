@@ -23,7 +23,7 @@ const ProtectedRoute = ({ element }) => {
     ? element
     : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
         import.meta.env.VITE_BACKEND
-      }/auth&response_type=code`);
+      }&response_type=code`);
   // : element
 };
 
