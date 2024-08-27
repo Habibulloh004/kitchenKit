@@ -11,7 +11,7 @@ import { Order } from "./models/order.model.js";
 dotenv.config();
 
 const corsOptions = {
-  origin: ["*", "http://localhost:5173"],
+  origin: ["*", "http://localhost:5173", `${process.env.BACKEND}`],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
@@ -44,7 +44,7 @@ app.get("/hey", (req, res) => {
   console.log("====================");
   console.log("====================");
   console.log("====================");
-  res.send(req);
+  res.send("send");
 })
 
 app.get("/auth", async (req, res) => {
@@ -65,7 +65,7 @@ app.get("/auth", async (req, res) => {
     formData.append("application_id", auth.application_id);
     formData.append("application_secret", auth.application_secret);
     formData.append("grant_type", "authorization_code");
-    formData.append("redirect_uri", `${process.env.BACKEND}/auth`);
+    formData.append("redirect_uri", `${process.env.BACKEND}`);
     formData.append("code", auth.code);
     try {
       const response = await axios.post(
@@ -77,7 +77,7 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token);
-      res.redirect(`http://localhost:5173?token=${response.data.access_token}`);
+      res.redirect(`${process.env.BACKEND}?token=${response.data.access_token}`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
