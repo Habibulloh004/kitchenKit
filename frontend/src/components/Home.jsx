@@ -7,9 +7,12 @@ import { useSocketContext } from "../context/SocketContext";
 import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const token = Cookies.get("authToken");
+  const navigate = useNavigate()
+  // const token = Cookies.get("authToken");
+  const [token, setToken] = useState("")
   const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
   const [accountSettings, setAccountSettings] = useState(null);
@@ -23,15 +26,16 @@ const Home = () => {
   const { data, toggleDialog, masterOrderInfo, masterBarInfo, isOpen } =
     useDataContext();
 
-  // const queryParams = new URLSearchParams(location.search);
-  // const haveToken = queryParams.get("token");
+  const queryParams = new URLSearchParams(location.search);
+  const haveToken = queryParams.get("token");
 
-  // useEffect(() => {
-  //   if (haveToken) {
-  //     Cookies.set("authToken", haveToken);
-  //     navigate("/");
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (haveToken) {
+      setToken(haveToken)
+      Cookies.set("authToken", haveToken);
+      navigate("/");
+    }
+  }, []);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -56,7 +60,7 @@ const Home = () => {
     };
 
     checkToken();
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     const getOrders = async () => {

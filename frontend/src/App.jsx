@@ -19,7 +19,7 @@ const ProtectedRoute = ({ element }) => {
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
 
-  return token
+  return token || haveToken
     ? element
     : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
         import.meta.env.VITE_BACKEND
