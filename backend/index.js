@@ -22,10 +22,10 @@ const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-});
+// app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+// });
 
 
 io.on("changeOrderDetails", (data) => {
@@ -65,7 +65,7 @@ app.get("/auth", async (req, res) => {
     formData.append("application_id", auth.application_id);
     formData.append("application_secret", auth.application_secret);
     formData.append("grant_type", "authorization_code");
-    formData.append("redirect_uri", `${process.env.BACKEND}`);
+    formData.append("redirect_uri", `${process.env.BACKEND}/auth`);
     formData.append("code", auth.code);
     try {
       const response = await axios.post(
@@ -77,7 +77,7 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token);
-      res.redirect(`${process.env.BACKEND}?token=${response.data.access_token}`);
+      res.redirect(`kitchen-kit-front.vercel.app?token=${response.data.access_token}`);
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");
