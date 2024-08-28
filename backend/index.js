@@ -9,9 +9,10 @@ import mongoose from "mongoose";
 import { Order } from "./models/order.model.js";
 
 dotenv.config();
+// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=http://localhost:9000/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "http://localhost:5173", `${process.env.BACKEND}`, "https://kitchen-kit-front.vercel.app"],
+  origin: ["*", "http://localhost:5173", `${process.env.FRONT_URL}`],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
@@ -22,38 +23,12 @@ const __dirname = path.resolve();
 
 app.use(express.json());
 app.use(cors(corsOptions));
-// app.use(express.static(path.join(__dirname, "/frontend/dist")));
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
-// });
-
-
-io.on("changeOrderDetails", (data) => {
-  console.log(data);
-  // io.to(data.data.accountData.accountUrl).emit(data)
-})
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Express.js server!");
 });
 
-app.get("/hey", (req, res) => {
-  console.log(req);
-  console.log("====================");
-  console.log("====================");
-  console.log("====================");
-  console.log("====================");
-  console.log("====================");
-  res.send("send");
-})
-
 app.get("/auth", async (req, res) => {
-  console.log("req: ", req);
-  console.log("================");
-  console.log("================");
-  console.log("================");
-  console.log("================");
-  console.log("================");
   if (req.query.code) {
     const auth = {
       application_id: 3544,
@@ -77,7 +52,9 @@ app.get("/auth", async (req, res) => {
       );
       console.log("Access token response data:", response.data);
       res.cookie("authToken", response.data.access_token);
-      res.redirect(`https://kitchen-kit-front.vercel.app?token=${response.data.access_token}`);
+      res.redirect(
+        `${process.env.FRONT_URL}?token=${response.data.access_token}`
+      );
     } catch (error) {
       console.error("Error exchanging code for access token:", error);
       res.status(500).send("Error exchanging code for access token");

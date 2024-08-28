@@ -6,14 +6,20 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["*", `http://localhost:5173`, `${process.env.BACKEND}`, "https://joinposter.com/", "https://kitchen-kit-front.vercel.app", "https://platform.joinposter.com"],
+    origin: [
+      "*",
+      "http://localhost:5173",
+      `${process.env.FRONT_URL}`,
+      "https://joinposter.com/",
+      "https://platform.joinposter.com",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
 });
 
-const companySocketMap = {}
-const companies = {}
+const companySocketMap = {};
+const companies = {};
 
 io.on("connection", (socket) => {
   const companyId = socket.handshake.query.companyId;
@@ -24,11 +30,11 @@ io.on("connection", (socket) => {
       from: "client",
       message: "finished",
       data: data,
-    })
-  })
-  
+    });
+  });
+
   if (companyId !== undefined) companySocketMap[`${socket.id}`] = companyId;
-  
+
   socket.emit("onlineCompanies", Object.values(companySocketMap));
   companies[socket.id] = true;
   // setInterval(() => {

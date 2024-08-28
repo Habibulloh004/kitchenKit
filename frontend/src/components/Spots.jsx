@@ -7,7 +7,7 @@ const Spots = () => {
   const token = Cookies.get("authToken");
   const [spots, setSpots] = useState([]);
   const [chosenSpot, setChosenSpot] = useState(
-    JSON.parse(localStorage.getItem("spot")) || []
+    JSON.parse(localStorage.getItem("spot")) || null
   );
   useEffect(() => {
     const getOrders = async () => {
@@ -27,10 +27,6 @@ const Spots = () => {
     getOrders();
   }, [token]);
 
-  if(!spots.length) {
-    return <>nothing</>
-  }
-
   return (
     <div className=" text-right">
       {!spots.length ? null : (
@@ -38,7 +34,7 @@ const Spots = () => {
           <MenuButton className="inline-flex items-center gap-2 rounded-md bg-gray-800 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white">
             {chosenSpot ? `Филиал: ${chosenSpot.name}` : "Пожалуйста, выберите филиал! Филиалы 👇"}
           </MenuButton>
-          {spots.length > 0 && spots?.map((item) => {
+          {spots.map((item) => {
             return (
               <MenuItems
                 key={item.spot_id}

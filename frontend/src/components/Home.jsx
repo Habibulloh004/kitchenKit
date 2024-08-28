@@ -7,12 +7,10 @@ import { useSocketContext } from "../context/SocketContext";
 import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const navigate = useNavigate()
-  // const token = Cookies.get("authToken");
-  const [token, setToken] = useState("")
+
+  const token = Cookies.get("authToken");
   const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
   const [accountSettings, setAccountSettings] = useState(null);
@@ -28,12 +26,10 @@ const Home = () => {
 
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
-
+  
   useEffect(() => {
     if (haveToken) {
-      setToken(haveToken)
       Cookies.set("authToken", haveToken);
-      navigate("/");
     }
   }, []);
 
@@ -60,7 +56,7 @@ const Home = () => {
     };
 
     checkToken();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     const getOrders = async () => {
@@ -212,12 +208,11 @@ const Home = () => {
       console.error("Error closing transaction", error);
     }
   };
-  console.log(data);
 
   if (!data) {
     return <Loader />;
   }
-  if (orders.length == 0) {
+  if (orders.length == 0 || !localStorage.getItem("spot")) {
     return (
       <main className=" h-[calc(100vh-48px)] flex items-center justify-center text-white text-2xl">
         <p>Нет заказов</p>

@@ -24,12 +24,11 @@ const ProtectedRoute = ({ element }) => {
     : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
         import.meta.env.VITE_BACKEND
       }/auth&response_type=code`);
-  // : element
 };
 
 function App() {
   const [screenSize, setScreenSize] = useState(600);
-  const [token] = useState(Cookies.get("authToken"));
+  // const [token] = useState(Cookies.get("authToken"));
 
   useEffect(() => {
     const currentTime = new Date().getTime();

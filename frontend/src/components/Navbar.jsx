@@ -43,14 +43,6 @@ const Navbar = () => {
           ))}
         </ul>
         <div className="flex items-center gap-10">
-          <button
-            onClick={() => {
-              window.location.href =
-                `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${import.meta.env.VITE_BACKEND}/auth&response_type=code`;
-            }}
-          >
-            Auth
-          </button>
           <Spots />
           <p className="text-3xl mr-5 font-semibold">{formatTime(time)}</p>
         </div>
