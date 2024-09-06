@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { navbarItems } from "../utils";
 import { useEffect, useState } from "react";
 import Spots from "./Spots";
+import toast from "react-hot-toast";
+import Cookies from "js-cookie";
+import Workshops from "./Workshops";
 
 const Navbar = () => {
   const [navIndex, setNavIndex] = useState(1);
@@ -43,7 +46,54 @@ const Navbar = () => {
           ))}
         </ul>
         <div className="flex items-center gap-10">
+          <Workshops />
           <Spots />
+          <p
+            onClick={() => {
+              toast(
+                (t) => (
+                  <span className="flex gap-3">
+                    Вы уверены, что хотите выйти из своей учетной записи?
+                    <div className="flex items-end gap-3">
+                      <button
+                        className="py-1 px-4 pb-2 rounded-md text-white bg-red-500"
+                        onClick={() => {
+                          toast.dismiss(t.id);
+                          Cookies.remove("authToken");
+                          localStorage.clear();
+                          // location.pathname = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+                          //   import.meta.env.VITE_BACKEND
+                          // }/auth&response_type=code`;
+                          window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+                            import.meta.env.VITE_BACKEND
+                          }/auth&response_type=code`;
+                          // navigate("/")
+                        }}
+                      >
+                        да
+                      </button>
+                      <button
+                        className="py-1 px-4 pb-2 rounded-md border border-gray-500"
+                        onClick={() => toast.dismiss(t.id)}
+                      >
+                        нет
+                      </button>
+                    </div>
+                  </span>
+                ),
+                {
+                  duration: 10000,
+                  icon: "❓",
+                  style: {
+                    minWidth: "500px",
+                  },
+                }
+              );
+            }}
+            className="inline-flex items-center gap-2 rounded-md bg-red-500 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+          >
+            Logout
+          </p>
           <p className="text-3xl mr-5 font-semibold">{formatTime(time)}</p>
         </div>
       </nav>

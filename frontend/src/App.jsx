@@ -11,6 +11,21 @@ const Home = lazy(() => import("./components/Home"));
 const Order = lazy(() => import("./components/Order"));
 const History = lazy(() => import("./components/History"));
 
+// const ProtectedRoute = ({ element }) => {
+//   const location = useLocation();
+//   const [token] = useState(Cookies.get("authToken"));
+
+//   const queryParams = new URLSearchParams(location.search);
+//   const haveToken = queryParams.get("token");
+
+//   return token || haveToken
+//     ? element
+//     : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+//         import.meta.env.VITE_BACKEND
+//       }/auth&response_type=code`);
+// };
+
+
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
   const location = useLocation();
@@ -19,16 +34,20 @@ const ProtectedRoute = ({ element }) => {
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
 
-  return token || haveToken
-    ? element
-    : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+  useEffect(() => {
+    if (!token && !haveToken) {
+      window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
         import.meta.env.VITE_BACKEND
-      }/auth&response_type=code`);
+      }/auth&response_type=code`;
+    }
+  }, [token, haveToken]);
+
+  // If there's a token or a token in query params, render the element
+  return token || haveToken ? element : null;
 };
 
 function App() {
   const [screenSize, setScreenSize] = useState(600);
-  // const [token] = useState(Cookies.get("authToken"));
 
   useEffect(() => {
     const currentTime = new Date().getTime();

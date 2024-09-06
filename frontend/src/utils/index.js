@@ -13,11 +13,12 @@ const formatTimeFromNumber = (number) => {
 
 // eslint-disable-next-line react/prop-types
 const truncateText = (text, wordLimit) => {
-  const words = text.split(" ");
-  if (words.length > wordLimit) {
-    return words.slice(0, wordLimit).join(" ") + "...";
+  if (!text || typeof text !== "string") {
+    return ""; // Return an empty string if text is undefined, null, or not a string
   }
-  return text;
+
+  return text.length > wordLimit ? `${text.substring(0, wordLimit)}...` : text;
 };
+// utils.js or wherever your truncateText function is defined
 
 export { navbarItems, formatTimeFromNumber, truncateText };

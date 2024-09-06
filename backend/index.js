@@ -92,6 +92,18 @@ app.get("/getSpots", async (req, res) => {
   }
 });
 
+app.get("/getWorkshops", async (req, res) => {
+  const { token } = req.query;
+  if (token) {
+    const workshops = await axios.get(
+      `https://joinposter.com/api/menu.getWorkshops?token=${token}`
+    );
+    res.status(200).send(workshops.data.response);
+  } else {
+    res.status(400).send("No token provided");
+  }
+});
+
 app.get("/getOrder/:id", async (req, res) => {
   const order = await Order.findOne({ orderId: Number(req.params.id) });
   res.send(order);
@@ -139,52 +151,125 @@ app.post("/createOrder", async (req, res) => {
   }
 });
 
-app.put("/changeOrderStatus/:orderId", async (req, res) => {
-  console.log("Request received to change order status");
-  const { item } = req.body; // Destructure item from the request body
+// app.put("/changeOrderStatus/:orderId", async (req, res) => {
+//   console.log("Request received to change order status");
+//   const { item } = req.body; // Destructure item from the request body
+//   const orderId = req.params.orderId; // Extract orderId from the route parameters
+
+//   try {
+//     // Find the order by orderId in the database
+//     const order = await Order.findOne({ orderId });
+
+//     // If the order is not found, return a 404 error
+//     if (!order) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     // Find the index of the workshop in the order's transaction array
+//     const workshopIndex = order.transaction.findIndex(
+//       (workshop) => workshop.workshop_id === item.workshop
+//     );
+
+//     if (workshopIndex !== -1) {
+//       // Filter the comment items based on their status
+//       let pr;
+//       order.transaction[workshopIndex].commentItems = order.transaction[
+//         workshopIndex
+//       ].commentItems.filter((commentItem) => {
+//         // Change status from "waiting" to "cooking"
+//         if (commentItem.product_id === item.product_id) {
+//           pr = commentItem;
+//           if (commentItem.status === "waiting") {
+//             commentItem.status = "cooking";
+//             return true; // Keep the item in the array
+//           }
+//           // Remove item if status is "cooking"
+//           else if (commentItem.status === "cooking") {
+//             return false; // Remove the item from the array
+//           }
+//         }
+//         return true; // Keep other items unchanged
+//       });
+
+//       // Mark the transaction field as modified
+//       order.markModified("transaction");
+
+//       // Save the updated order to the database
+//       const updatedOrder = await order.save();
+
+//       // Send the updated order back to the client
+//       res.send({ updatedOrder, product: pr });
+//     } else {
+//       // If the workshop is not found, return a 400 error
+//       return res.status(400).json({ message: "Workshop not found" });
+//     }
+//   } catch (error) {
+//     // Log the error and return a 500 error
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+app.put("/deleteItem/:orderId", async (req, res) => {
+  console.log("Request received to delete an item");
+  const { item, order, token, status } = req.body; // Extract item from the request body
   const orderId = req.params.orderId; // Extract orderId from the route parameters
 
   try {
     // Find the order by orderId in the database
-    const order = await Order.findOne({ orderId });
+    const orderMe = await Order.findOne({ orderId });
 
     // If the order is not found, return a 404 error
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    if (!orderMe) {
+      return res.status(404).json({ message: "OrderMe not found" });
     }
 
-    // Find the index of the workshop in the order's transaction array
-    const workshopIndex = order.transaction.findIndex(
-      (workshop) => workshop.workshop_id === item.workshop
+    // Find the index of the workshop in the orderMe's transaction array
+    const workshopIndex = orderMe.transaction.findIndex(
+      (workshop) => workshop.workshop_id == item.workshop
     );
 
     if (workshopIndex !== -1) {
-      // Filter the comment items based on their status
-      order.transaction[workshopIndex].commentItems = order.transaction[
+      // Filter out the item that needs to be deleted
+      const originalLength =
+        orderMe.transaction[workshopIndex].commentItems.length;
+
+      orderMe.transaction[workshopIndex].commentItems = orderMe.transaction[
         workshopIndex
-      ].commentItems.filter((commentItem) => {
-        // Change status from "waiting" to "cooking"
-        if (commentItem.product_id === item.product_id) {
-          if (commentItem.status === "waiting") {
-            commentItem.status = "cooking";
-            return true; // Keep the item in the array
-          }
-          // Remove item if status is "cooking"
-          else if (commentItem.status === "cooking") {
-            return false; // Remove the item from the array
-          }
-        }
-        return true; // Keep other items unchanged
-      });
+      ].commentItems.filter(
+        (commentItem) => commentItem.product_id != item.product_id
+      );
+
+      // Check if an item was actually removed
+      if (
+        orderMe.transaction[workshopIndex].commentItems.length == originalLength
+      ) {
+        return res.status(404).json({ message: "Item not found in the orderMe" });
+      }
 
       // Mark the transaction field as modified
-      order.markModified("transaction");
+      orderMe.markModified("transaction");
 
-      // Save the updated order to the database
-      const updatedOrder = await order.save();
+      // Save the updated orderMe to the database
+      const updatedOrderMe = await orderMe.save();
+      console.log(orderMe);
 
       // Send the updated order back to the client
-      res.send(updatedOrder);
+      if (status == "delete") {
+        // const deleteItem = await axios.post(
+        //   `https://joinposter.com/api/transactions.removeTransactionProduct?token=${token}`,
+        //   {
+        //     spot_id: +order.accountData.spotId,
+        //     spot_tablet_id: +order.accountData.spotTabletId,
+        //     transaction_id: +orderId,
+        //     product_id: +item.product_id,
+        //   }
+        // );
+
+        // console.log("delete", deleteItem.data);
+      }
+
+      res.send({ message: "Item deleted successfully", updatedOrderMe });
     } else {
       // If the workshop is not found, return a 400 error
       return res.status(400).json({ message: "Workshop not found" });
@@ -193,6 +278,29 @@ app.put("/changeOrderStatus/:orderId", async (req, res) => {
     // Log the error and return a 500 error
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.put("/closeTransaction/:orderId", async (req, res) => {
+  const { workshopId } = req.body;
+  const { orderId } = req.params;
+
+  try {
+    // Find the order and remove the workshop from the transaction array
+    const updatedOrder = await Order.findOneAndUpdate(
+      { orderId },
+      { $pull: { transaction: { workshop_id: workshopId } } }, // Adjust this to match your schema
+      { new: true }
+    );
+
+    if (updatedOrder) {
+      res.send(updatedOrder);
+    } else {
+      res.status(404).send({ message: "Order not found" });
+    }
+  } catch (error) {
+    console.error("Error updating order", error);
+    res.status(500).send({ message: "Error updating order" });
   }
 });
 

@@ -1,23 +1,26 @@
 import mongoose from "mongoose";
 
-const OrderSchema = mongoose.Schema({
+const OrderSchema = mongoose.Schema(
+  {
     orderId: {
-        unique: true,
-        type: Number,
-        required: true,
+      unique: true,
+      type: Number,
+      required: true,
     },
     accountData: {
-        type: Object,
-        required: true
+      type: Object,
+      required: true,
     },
     transaction: {
-        type: Array,
-        required: true
+      type: Array,
+      required: true,
     },
     orderInformation: {
-        type: Object,
-        required: true
+      type: Object,
+      required: true,
     },
-});
+  },
+  { timestamps: true }
+);
 
 export const Order = mongoose.model("Order", OrderSchema);

@@ -28,8 +28,14 @@ io.on("connection", (socket) => {
     console.log("fr", data);
     socket.to(data.accountData.accountUrl).emit("changeOrderDetails", {
       from: "client",
-      message: "finished",
-      data: data,
+      data,
+    });
+  });
+  socket.on("deleteItem", (data) => {
+    console.log("dl", data);
+    socket.to(data.accountData.accountUrl).emit("deleteOrderItem", {
+      from: "client",
+      data,
     });
   });
 

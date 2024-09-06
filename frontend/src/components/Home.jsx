@@ -7,26 +7,36 @@ import { useSocketContext } from "../context/SocketContext";
 import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
 
 const Home = () => {
-
+  const location = useLocation();
   const token = Cookies.get("authToken");
   const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
   const [accountSettings, setAccountSettings] = useState(null);
+  const [chosenWorkshop] = useState(
+    JSON.parse(localStorage.getItem("workshop")) || null
+  );
+  const [chosenSpot] = useState(
+    JSON.parse(localStorage.getItem("spot")) || null
+  );
 
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState({
-    orderId: 0,
-    productId: 0,
-    loading: false,
-  });
-  const { data, toggleDialog, masterOrderInfo, masterBarInfo, isOpen } =
-    useDataContext();
+  const {
+    data,
+    toggleDialog,
+    masterOrderInfo,
+    masterBarInfo,
+    isOpen,
+    orders,
+    setOrders,
+    setProduct,
+    setOrder,
+  } = useDataContext();
 
   const queryParams = new URLSearchParams(location.search);
   const haveToken = queryParams.get("token");
-  
+
   useEffect(() => {
     if (haveToken) {
       Cookies.set("authToken", haveToken);
@@ -56,58 +66,79 @@ const Home = () => {
     };
 
     checkToken();
-  }, []);
-
-  useEffect(() => {
-    const getOrders = async () => {
-      if (accountSettings) {
-        try {
-          const result = await axios.post(
-            `${import.meta.env.VITE_BACKEND}/getOrders`,
-            {
-              accountUrl: accountSettings.COMPANY_ID,
-            }
-          );
-          setOrders(result.data);
-        } catch (error) {
-          console.error("Error fetching orders:", error);
-        }
-      }
-    };
-
-    getOrders();
-  }, [accountSettings]);
+  }, [token, haveToken]);
 
   useEffect(() => {
     const createOrder = (data) => {
       if (data.from !== "client" && data.spotId == spot.spot_id) {
-        console.log(data);
+        console.log("Received order data:", data.order);
         toast.success(
           `Новый заказ № ${data.order.orderInformation.id.toString().slice(-2)}`
         );
 
-        // Update the order in the state
-        setOrders((prevOrders) => [...prevOrders, data.order]);
+        // Since data.order is a single object, we check the spotId directly
+        if (data.order.accountData.spotId == chosenSpot.spot_id) {
+          let filterWorkshop = data.order;
+
+          // Filter transactions based on the chosen workshop if applicable
+          if (chosenWorkshop) {
+            const filteredTransactions = data.order.transaction.filter(
+              (transaction) => {
+                return transaction.workshop_id == chosenWorkshop.workshop_id;
+              }
+            );
+
+            // Update the order to only include the filtered transactions
+            filterWorkshop = {
+              ...data.order,
+              transaction: filteredTransactions,
+            };
+          }
+
+          // Add the new order to the existing orders
+          setOrders((prevOrders) => [...prevOrders, filterWorkshop]);
+        }
       }
     };
+
     const changingOrder = (data) => {
       if (data.from !== "client" && data.spotId == spot.spot_id) {
-        console.log(data);
+        console.log("Received changing order data:", data.order);
+
         toast.success(
-          `Офицант изменил заказ № ${data.order.orderInformation.id
+          ` Офицант изменил заказ № ${data.order.orderInformation.id
             .toString()
             .slice(-2)}`
         );
+        // Since data.order is a single object, check the spotId directly
+        if (data.order.accountData.spotId == chosenSpot.spot_id) {
+          let filterWorkshop = data.order;
 
-        // Update the order in the state
-        setOrders((prevOrders) =>
-          prevOrders.map(
-            (order) =>
-              order.orderId == data.order.orderId
-                ? { ...order, ...data.order } // Replace with new data
-                : order // Keep the same if ID does not match
-          )
-        );
+          // Filter transactions based on the chosen workshop if applicable
+          if (chosenWorkshop) {
+            const filteredTransactions = data.order.transaction.filter(
+              (transaction) => {
+                return transaction.workshop_id == chosenWorkshop.workshop_id;
+              }
+            );
+
+            // Update the order to only include the filtered transactions
+            filterWorkshop = {
+              ...data.order,
+              transaction: filteredTransactions,
+            };
+          }
+
+          // Update the order in the state by matching the orderId
+          setOrders((prevOrders) =>
+            prevOrders.map(
+              (order) =>
+                order.orderId === data.order.orderId
+                  ? { ...order, ...filterWorkshop } // Update the order with new data
+                  : order // Keep the same order if the ID does not match
+            )
+          );
+        }
       }
     };
 
@@ -120,94 +151,73 @@ const Home = () => {
     };
   }, [socket]);
 
-  const changeStatus = async (orderId, item, status) => {
+  const closeTransaction = async (orderId, order) => {
     try {
-      const productChangeStatus = await axios.put(
-        `${import.meta.env.VITE_BACKEND}/changeOrderStatus/${orderId}`,
-        { item }
-      );
+      if (chosenWorkshop == null) {
+        const response = await axios.delete(
+          `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+        );
+        console.log("baaack", response.data);
 
-      const updatedTransactions = productChangeStatus.data.transaction;
+        // Update state to remove the closed order
+        setOrders((prevOrders) =>
+          prevOrders.filter((order) => order.orderId !== orderId)
+        );
 
-      if (!updatedTransactions || !Array.isArray(updatedTransactions)) {
-        throw new Error("Invalid response from the server.");
-      }
-
-      setOrders((prevOrders) => {
-        return prevOrders.map((order) => {
-          if (order.orderId === productChangeStatus.data.orderId) {
-            return {
-              ...order,
-              transaction: order.transaction.map((transaction) => {
-                const updatedTransaction = updatedTransactions.find(
-                  (updatedTran) =>
-                    updatedTran.workshop_id === transaction.workshop_id
-                );
-
-                if (!updatedTransaction) {
-                  return transaction;
-                }
-
-                return {
-                  ...transaction,
-                  commentItems: transaction.commentItems
-                    .map((commentItem) => {
-                      const updatedItem = updatedTransaction.commentItems.find(
-                        (updatedItem) =>
-                          updatedItem.product_id === commentItem.product_id
-                      );
-                      if (updatedItem) {
-                        return { ...commentItem, status: updatedItem.status };
-                      }
-                      return commentItem;
-                    })
-                    .filter((commentItem) =>
-                      updatedTransaction.commentItems.some(
-                        (updatedItem) =>
-                          updatedItem.product_id === commentItem.product_id
-                      )
-                    ),
-                };
-              }),
-            };
-          }
-          return order;
+        socket.emit("frontData", {
+          ...order,
+          item: "all",
         });
-      });
+      } else {
+        // Make a PUT request to delete the workshop from the transaction array
+        const response = await axios.put(
+          `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`,
+          {
+            workshopId: chosenWorkshop.workshop_id, // Use the correct property name for workshop ID
+          }
+        );
+        console.log("baaack", response.data);
 
-      socket.emit("frontData", {
-        ...productChangeStatus.data,
-        status,
-      });
+        // Update state to reflect the deleted workshop in the transaction array
+        setOrders((prevOrders) =>
+          prevOrders.map((order) => {
+            if (order.orderId === orderId) {
+              // Remove the workshop from the transaction array
+              return {
+                ...order,
+                transaction: order.transaction.filter(
+                  (transaction) =>
+                    transaction.workshop_id !== chosenWorkshop.workshop_id
+                ),
+              };
+            }
+            return order;
+          })
+        );
 
-      // Set loading state to false after updating orders
-      setLoading({
-        orderId: 0,
-        productId: 0,
-        loading: false,
-      });
+        socket.emit("frontData", {
+          ...order,
+          item: order.transaction[0],
+        });
+        console.log("loooog", response.data);
 
-      console.log("backdata", productChangeStatus.data);
-    } catch (error) {
-      console.error("Error updating status", error);
-    }
-  };
+        if (response.data.transaction.length == 0) {
+          const response = await axios.delete(
+            `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+          );
+          console.log(response.data);
 
-  const closeTransaction = async (orderId) => {
-    try {
-      const response = await axios.delete(
-        `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
-      );
-      console.log(response.data);
-
-      // Update state to remove the closed order
-      setOrders((prevOrders) =>
-        prevOrders.filter((order) => order.orderId != orderId)
-      );
+          // Update state to remove the closed order
+          setOrders((prevOrders) =>
+            prevOrders.filter((order) => order.orderId !== orderId)
+          );
+        }
+      }
     } catch (error) {
       console.error("Error closing transaction", error);
     }
   };
+
 
   if (!data) {
     return <Loader />;
@@ -227,27 +237,38 @@ const Home = () => {
       <section className="w-11/12 py-8 mx-auto grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 place-items-start">
         {orders.map((order) => {
           const nameWaiter = data.find(
-            (item) => item.user_id == order.orderInformation.userId
+            (item) => item?.user_id == order.orderInformation?.userId
           );
+          function find(order) {
+            if (chosenWorkshop) {
+              return order.transaction[0].commentItems.length == 0
+                ? false
+                : true;
+            } else {
+              return true;
+            }
+          }
           return (
-            <article
-              key={order._id}
-              className="bg-white/80 rounded-md p-4 pt-2 space-y-4 w-full"
-            >
-              <div className="flex justify-between items-center font-semibold">
-                <p className="text-2xl">
-                  № {order.orderInformation.id.toString().slice(-2)}
-                </p>
-                <span className="text-base text-gray-600 flex flex-col items-end">
-                  <p>{nameWaiter && nameWaiter.name}</p>
-                  <p>Стол {order.orderInformation.tableId}</p>
-                </span>
-              </div>
-              <section className="space-y-4">
-                {order.transaction &&
-                  (order.transaction.some(
-                    (orderItem) => orderItem?.commentItems?.length > 0
-                  ) ? (
+            order.transaction.length > 0 &&
+            find(order) && (
+              <article
+                key={order._id}
+                className="bg-white/80 rounded-md p-4 pt-2 space-y-4 w-full"
+              >
+                <div className="flex justify-between items-center font-semibold">
+                  <p className="text-2xl">
+                    № {order.orderInformation.id.toString().slice(-2)}
+                  </p>
+                  <span className="text-base text-gray-600 flex flex-col items-end">
+                    <p>{nameWaiter && nameWaiter.name}</p>
+                    <p>Стол {order.orderInformation.tableId}</p>
+                  </span>
+                </div>
+                <section className="space-y-4">
+                  {order.transaction &&
+                    order.transaction.some(
+                      (orderItem) => orderItem?.commentItems?.length > 0
+                    ) &&
                     order.transaction
                       .filter(
                         (orderItem) => orderItem?.commentItems?.length > 0
@@ -256,7 +277,7 @@ const Home = () => {
                         orderItem?.commentItems?.map((product, index) => (
                           <article
                             key={`${orderItemIndex}-${index}`}
-                            className="bg-white rounded-md shadow-md flex flex-col justify-between overflow-hidden"
+                            className="bg-white rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden"
                           >
                             <div
                               className="flex gap-3 p-3 justify-between"
@@ -264,6 +285,8 @@ const Home = () => {
                                 masterOrderInfo(product);
                                 masterBarInfo(orderItem);
                                 toggleDialog();
+                                setOrder(order);
+                                setProduct(product);
                               }}
                             >
                               <p className="font-semibold text-xl">
@@ -285,60 +308,21 @@ const Home = () => {
                                 </p>
                               </div>
                             </div>
-                            <button
-                              disabled={
-                                product.product_id === loading.productId &&
-                                loading.loading &&
-                                order._id === loading.orderId
-                              }
-                              onClick={() => {
-                                changeStatus(
-                                  order.orderId,
-                                  product,
-                                  product.status
-                                );
-                                setLoading({
-                                  orderId: order._id,
-                                  productId: product.product_id,
-                                  loading: true,
-                                });
-                              }}
-                              className={`${
-                                product.status === "cooking"
-                                  ? "bg-green-600"
-                                  : "bg-yellow-500"
-                              } ${
-                                product.product_id === loading.productId &&
-                                loading.loading &&
-                                order._id === loading.orderId &&
-                                "bg-opacity-50"
-                              } text-white py-3 text-lg`}
-                            >
-                              {product.product_id === loading.productId &&
-                              loading.loading &&
-                              order._id === loading.orderId
-                                ? "Loading"
-                                : product.status === "cooking"
-                                ? "Готово"
-                                : "Начать"}
-                            </button>
                           </article>
                         ))
-                      )
-                  ) : (
-                    <button
-                      key={order.orderId}
-                      className="bg-green-500 text-white w-full py-2 mt-3 rounded-md text-lg"
-                      onClick={() => {
-                        console.log(order.orderId);
-                        closeTransaction(order.orderId);
-                      }}
-                    >
-                      Закрыть чек
-                    </button>
-                  ))}
-              </section>
-            </article>
+                      )}
+                  <button
+                    key={order.orderId}
+                    className="bg-green-500 text-white w-full py-2 mt-3 rounded-md text-lg"
+                    onClick={() => {
+                      closeTransaction(order.orderId, order);
+                    }}
+                  >
+                    Закрыть чек
+                  </button>
+                </section>
+              </article>
+            )
           );
         })}
       </section>
