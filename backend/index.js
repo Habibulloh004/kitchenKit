@@ -12,7 +12,7 @@ dotenv.config();
 // https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=http://localhost:9000/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "http://localhost:5173", `${process.env.FRONT_URL}`],
+  origin: ["*", "http://localhost:5173", `${process.env.FRONT_URL}`, "https://platform.joinposter.com", "https://platform.joinposter.com"],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,

@@ -10,7 +10,7 @@ const io = new Server(server, {
       "*",
       "http://localhost:5173",
       `${process.env.FRONT_URL}`,
-      "https://joinposter.com/",
+      "https://joinposter.com",
       "https://platform.joinposter.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],

@@ -1,6 +1,6 @@
 const navbarItems = [
   { id: 1, name: "Заказы", path: "/" },
-  { id: 2, name: "История", path: "/history" },
+  // { id: 2, name: "История", path: "/history" },
 ];
 
 const formatTimeFromNumber = (number) => {
