@@ -23,6 +23,7 @@ const companies = {};
 
 io.on("connection", (socket) => {
   const companyId = socket.handshake.query.companyId;
+  console.log("companyId:",companyId);
   socket.join(companyId);
   socket.on("frontData", (data) => {
     console.log("fr", data);
@@ -43,9 +44,6 @@ io.on("connection", (socket) => {
 
   socket.emit("onlineCompanies", Object.values(companySocketMap));
   companies[socket.id] = true;
-  // setInterval(() => {
-  //   console.log(queries);
-  // }, 2000);
 
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
