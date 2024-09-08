@@ -12,7 +12,13 @@ dotenv.config();
 // https://possible4.joinposter.com/api/auth?application_id=3629&redirect_uri=http://localhost:9000/auth&response_type=code
 
 const corsOptions = {
-  origin: ["*", "http://localhost:5173", `${process.env.FRONT_URL}`, "https://platform.joinposter.com", "https://platform.joinposter.com"],
+  origin: [
+    "*",
+    "http://localhost:5173",
+    `${process.env.FRONT_URL}`,
+    "https://platform.joinposter.com",
+    "https://platform.joinposter.com",
+  ],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
@@ -65,21 +71,49 @@ app.get("/auth", async (req, res) => {
 });
 
 app.get("/checkToken", async (req, res) => {
-  // console.log(req.query);
-  const accountSettings = await axios.get(
-    `https://joinposter.com/api/settings.getAllSettings?token=${req.query.token}`
-  );
-  // console.log(accountSettings);
-  res.send(accountSettings.data);
+  try {
+    // Fetch account settings using the provided token
+    const accountSettings = await axios.get(
+      `https://joinposter.com/api/settings.getAllSettings?token=${req.query.token}`
+    );
+
+    // Send the retrieved account settings as the response
+    res.send(accountSettings.data);
+  } catch (error) {
+    // Log the error and send an error response
+    console.error("Error fetching account settings:", error.message);
+    res.status(500).send({
+      error:
+        "Failed to fetch account settings. Please check the token and try again.",
+      details: error.message,
+    });
+  }
 });
 
 app.get("/getWaiters", async (req, res) => {
-  const employee = await axios.get(
-    `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
-  );
-  console.log("employee", employee);
-  const waiters = employee.data.response.filter(item => item.user_type == 0)
-  res.send(waiters);
+  try {
+    // Fetch employees using the provided token
+    const employee = await axios.get(
+      `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
+    );
+
+    console.log("employee", employee.data);
+
+    // Filter out waiters (user_type 0) from the response
+    const waiters = employee.data.response.filter(
+      (item) => item.user_type == 0
+    );
+
+    // Send the filtered waiters as the response
+    res.send(waiters);
+  } catch (error) {
+    // Log the error and send an error response
+    console.error("Error fetching waiters:", error.message);
+    res.status(500).send({
+      error: "Failed to fetch waiters. Please check the token and try again.",
+      details: error.message,
+    });
+  }
 });
 
 app.get("/getSpots", async (req, res) => {
@@ -246,7 +280,9 @@ app.put("/deleteItem/:orderId", async (req, res) => {
       if (
         orderMe.transaction[workshopIndex].commentItems.length == originalLength
       ) {
-        return res.status(404).json({ message: "Item not found in the orderMe" });
+        return res
+          .status(404)
+          .json({ message: "Item not found in the orderMe" });
       }
 
       // Mark the transaction field as modified
@@ -267,7 +303,6 @@ app.put("/deleteItem/:orderId", async (req, res) => {
         //     product_id: +item.product_id,
         //   }
         // );
-
         // console.log("delete", deleteItem.data);
       }
 

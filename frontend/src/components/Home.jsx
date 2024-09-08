@@ -9,6 +9,7 @@ import { formatTimeFromNumber, truncateText } from "../utils";
 import DialogPopup from "./Dialog";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
+import notice from "../../public/notice.mp3";
 
 const Home = () => {
   const location = useLocation();
@@ -68,10 +69,13 @@ const Home = () => {
 
     checkToken();
   }, [token, haveToken]);
+  console.log(notice);
 
   useEffect(() => {
     const createOrder = (data) => {
       if (data.from == "poster" && data.spotId == spot.spot_id) {
+        const sound = new Audio(notice);
+        sound.play();
         toast.success(
           `Новый заказ № ${data.order.orderInformation.id.toString().slice(-4)}`
         );
@@ -103,6 +107,8 @@ const Home = () => {
 
     const changingOrder = (data) => {
       if (data.from == "poster" && data.spotId == spot.spot_id) {
+        const sound = new Audio(notice);
+        sound.play();
         toast.success(
           ` Офицант изменил заказ № ${data.order.orderInformation.id
             .toString()
