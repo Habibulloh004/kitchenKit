@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 import { Order } from "./models/order.model.js";
 
 dotenv.config();
-// https://possible4.joinposter.com/api/auth?application_id=3544&redirect_uri=http://localhost:9000/auth&response_type=code
+// https://possible4.joinposter.com/api/auth?application_id=3629&redirect_uri=http://localhost:9000/auth&response_type=code
 
 const corsOptions = {
   origin: ["*", "http://localhost:5173", `${process.env.FRONT_URL}`, "https://platform.joinposter.com", "https://platform.joinposter.com"],
@@ -31,8 +31,8 @@ app.get("/", (req, res) => {
 app.get("/auth", async (req, res) => {
   if (req.query.code) {
     const auth = {
-      application_id: 3544,
-      application_secret: "586a61d2f3a718c1d6daeb847e690230",
+      application_id: 3629,
+      application_secret: "88784f4287b6c9b3e0eada9d06b8c4b2",
       code: req.query.code,
       account: req.query.account,
     };

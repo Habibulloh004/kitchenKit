@@ -29,7 +29,7 @@ const ProtectedRoute = ({ element }) => {
   return token
     ? element
     : (window.location.href =
-        "https://joinposter.com/api/auth?application_id=3544&redirect_uri=process.env.BACKEND/auth&response_type=code");
+        "https://joinposter.com/api/auth?application_id=3629&redirect_uri=process.env.BACKEND/auth&response_type=code");
 };
 
 function App() {

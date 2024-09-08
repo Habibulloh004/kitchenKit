@@ -21,7 +21,7 @@ const History = lazy(() => import("./components/History"));
 
 //   return token || haveToken
 //     ? element
-//     : (window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+//     : (window.location.href = `https://joinposter.com/api/auth?application_id=3629&redirect_uri=${
 //         import.meta.env.VITE_BACKEND
 //       }/auth&response_type=code`);
 // };
@@ -36,7 +36,7 @@ const ProtectedRoute = ({ element }) => {
 
   useEffect(() => {
     if (!token && !haveToken) {
-      window.location.href = `https://joinposter.com/api/auth?application_id=3544&redirect_uri=${
+      window.location.href = `https://joinposter.com/api/auth?application_id=3629&redirect_uri=${
         import.meta.env.VITE_BACKEND
       }/auth&response_type=code`;
     }
