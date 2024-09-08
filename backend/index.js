@@ -77,6 +77,7 @@ app.get("/getWaiters", async (req, res) => {
   const employee = await axios.get(
     `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
   );
+  console.log("employee", employee);
   const waiters = employee.data.response.filter(item => item.user_type == 0)
   res.send(waiters);
 });
