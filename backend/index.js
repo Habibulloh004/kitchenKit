@@ -105,7 +105,7 @@ app.get("/getWaiters", async (req, res) => {
     );
 
     // Send the filtered waiters as the response
-    res.send(waiters);
+    res.send(employee.data.response);
   } catch (error) {
     // Log the error and send an error response
     console.error("Error fetching waiters:", error.message);
