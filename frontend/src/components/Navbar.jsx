@@ -5,10 +5,12 @@ import Spots from "./Spots";
 import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import Workshops from "./Workshops";
+import { useDataContext } from "../context/DataContext";
 
 const Navbar = () => {
   const [navIndex, setNavIndex] = useState(1);
   const [time, setTime] = useState(new Date());
+  const { isOnline } = useDataContext();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -28,7 +30,7 @@ const Navbar = () => {
   return (
     <header className="bg-blue-600 fixed top-0 w-full z-50">
       <nav className="flex justify-between items-center text-white h-12">
-        <ul className="flex items-center space-x-4">
+        {/* <ul className="flex items-center space-x-4">
           {navbarItems.map((item) => (
             <li key={item.id}>
               <Link
@@ -44,8 +46,9 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
-        </ul>
-        <div className="flex items-center gap-10">
+        </ul> */}
+        <div></div>
+        <div className="flex items-center gap-4 md:gap-10">
           <Workshops />
           <Spots />
           <p
@@ -94,6 +97,13 @@ const Navbar = () => {
           >
             Logout
           </p>
+          <div>
+            {isOnline ? (
+              <div className="bg-green-500 w-[10px] h-[10px] rounded-full"></div>
+            ) : (
+              <div className="bg-red-500 w-[10px] h-[10px] rounded-full"></div>
+            )}
+          </div>
           <p className="text-3xl mr-5 font-semibold">{formatTime(time)}</p>
         </div>
       </nav>

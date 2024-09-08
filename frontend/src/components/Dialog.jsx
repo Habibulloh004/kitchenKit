@@ -100,14 +100,10 @@ const DialogPopup = () => {
 
   const deleteItem = async (orderId, item, status) => {
     try {
-      console.log("order", order);
-
       const productChangeStatus = await axios.put(
         `${import.meta.env.VITE_BACKEND}/deleteItem/${orderId}`,
         { item, order, token, status }
       );
-
-      console.log(productChangeStatus.data);
 
       const updatedTransactions =
         productChangeStatus.data.updatedOrderMe.transaction;
@@ -118,7 +114,9 @@ const DialogPopup = () => {
 
       setOrders((prevOrders) => {
         return prevOrders.map((order) => {
-          if (order.orderId === productChangeStatus.data.updatedOrderMe.orderId) {
+          if (
+            order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+          ) {
             return {
               ...order,
               transaction: order.transaction.map((transaction) => {
@@ -178,15 +176,39 @@ const DialogPopup = () => {
         productId: 0,
         loading: false,
       });
-      console.log("loooog: ", productChangeStatus.data.updatedOrderMe);
+
+      console.log("updating", productChangeStatus.data.updatedOrderMe);
 
       if (chosenWorkshop == null) {
-        // setOrders((prevOrders) =>
-        //   prevOrders.filter(
-        //     (order) =>
-        //       order.orderId != productChangeStatus.data.updatedOrderMe.orderId
-        //   )
-        // );
+        const checkAllCommentItems = async (order) => {
+          // Check if all commentItems arrays are empty
+          const allEmpty = order.data.updatedOrderMe.transaction.every(
+            (transactionItem) => transactionItem.commentItems.length === 0
+          );
+
+          // Output 0 if all are empty, otherwise 1
+          console.log(allEmpty ? 0 : 1);
+          console.log(allEmpty);
+          if (allEmpty) {
+            const response = await axios.delete(
+              `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+            );
+            console.log("baaack", response.data);
+
+            // Update state to remove the closed order
+            setOrders((prevOrders) =>
+              prevOrders.filter((order) => order.orderId !== orderId)
+            );
+
+            socket.emit("frontData", {
+              ...order.data.updatedOrderMe,
+              item: "all",
+            });
+          }
+        };
+
+        // Calling the function with the sample data
+        checkAllCommentItems(productChangeStatus);
       } else {
         const chosenWorkshopId = chosenWorkshop.workshop_id; // Extract workshop_id from chosenWorkshop
 
@@ -195,8 +217,8 @@ const DialogPopup = () => {
             (item) => item.workshop_id == chosenWorkshopId
           );
         if (
-          productChangeStatus.data.updatedOrderMe.transaction[index].commentItems
-            .length == 0
+          productChangeStatus.data.updatedOrderMe.transaction[index]
+            .commentItems.length == 0
         ) {
           setOrders((prevOrders) =>
             prevOrders.filter(
@@ -278,8 +300,9 @@ const DialogPopup = () => {
                     {orderInfo.product_name}
                   </p>
                   <p className="font-medium text-gray-500">
-                    Кол-во: {orderInfo.count} {barInfo.comment && "|"}{" "}
-                    {barInfo.comment}
+                    Кол-во: {orderInfo.count}
+                    {/* {barInfo.comment && "|"}{" "}
+                    {barInfo.comment} */}
                   </p>
                 </span>
               </div>

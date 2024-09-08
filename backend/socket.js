@@ -31,11 +31,23 @@ io.on("connection", (socket) => {
       from: "client",
       data,
     });
+    socket.broadcast.emit("changeOrder", {
+      from: "backend",
+      data,
+    });
+    socket.broadcast.emit("deleteAllOrder", {
+      from: "backend",
+      data,
+    });
   });
   socket.on("deleteItem", (data) => {
     console.log("dl", data);
     socket.to(data.accountData.accountUrl).emit("deleteOrderItem", {
       from: "client",
+      data,
+    });
+    socket.broadcast.emit("deleteOrder", {
+      from: "backend",
       data,
     });
   });

@@ -1,6 +1,7 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useState, useEffect, lazy, Suspense, useLayoutEffect } from "react";
+import { IoReload } from "react-icons/io5";
 import Loader from "./components/Loader/Loader";
 import Cookies from "js-cookie";
 // import Order from "./components/Order";
@@ -24,7 +25,6 @@ const History = lazy(() => import("./components/History"));
 //         import.meta.env.VITE_BACKEND
 //       }/auth&response_type=code`);
 // };
-
 
 // eslint-disable-next-line react/prop-types
 const ProtectedRoute = ({ element }) => {
@@ -99,7 +99,7 @@ function App() {
           </main>
         </>
       ) : (
-        <>
+        <main className="relative">
           <Toaster position="top-center" reverseOrder={false} />
 
           <Navbar />
@@ -122,7 +122,10 @@ function App() {
             </Suspense>
             <Toaster position="top-center" reverseOrder={false} />
           </div>
-        </>
+          <div className="absolute bottom-5 right-5 rounded-full p-2 bg-white/70" onClick={() => window.location.reload()}>
+            <IoReload />
+          </div>
+        </main>
       )}
     </>
   );

@@ -74,10 +74,11 @@ app.get("/checkToken", async (req, res) => {
 });
 
 app.get("/getWaiters", async (req, res) => {
-  const waiters = await axios.get(
-    `https://joinposter.com/api/dash.getWaitersSales?token=${req.query.token}`
+  const employee = await axios.get(
+    `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
   );
-  res.send(waiters.data);
+  const waiters = employee.data.response.filter(item => item.user_type == 0)
+  res.send(waiters);
 });
 
 app.get("/getSpots", async (req, res) => {

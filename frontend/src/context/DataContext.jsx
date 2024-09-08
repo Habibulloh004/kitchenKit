@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export const DataContext = createContext();
 
@@ -12,6 +12,7 @@ export const useDataContext = () => {
 
 // eslint-disable-next-line react/prop-types
 export const DataContextProvider = ({ children }) => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [chosenWorkshop] = useState(
     JSON.parse(localStorage.getItem("workshop")) || null
   );
@@ -26,13 +27,14 @@ export const DataContextProvider = ({ children }) => {
   const [orderInfo, setOrderInfo] = useState({});
   const [barInfo, setBarInfo] = useState({});
   const [orders, setOrders] = useState([]);
-  const [order, setOrder] = useState({})
+  const [order, setOrder] = useState({});
   const [product, setProduct] = useState({});
   const [loading, setLoading] = useState({
     orderId: 0,
     productId: 0,
     loading: false,
   });
+  const [data, setData] = useState([]);
   const accountData = JSON.parse(localStorage.getItem("accountSettings"));
 
   const toggleDialog = () => {
@@ -45,62 +47,96 @@ export const DataContextProvider = ({ children }) => {
   const masterBarInfo = (data) => {
     setBarInfo(data);
   };
+  async function getOrders() {
+    console.log("it works")
+    if (accountSettings && chosenSpot) {
+      try {
+        const result = await axios.post(
+          `${import.meta.env.VITE_BACKEND}/getOrders`,
+          {
+            accountUrl: accountSettings.COMPANY_ID,
+          }
+        );
+
+        // Filter orders based on the chosen spot ID
+        let filteredOrders = result.data.filter(
+          (item) => item.accountData.spotId == chosenSpot.spot_id
+        );
+
+        let filterWorkshop = filteredOrders;
+
+        if (chosenWorkshop) {
+          filterWorkshop = filteredOrders.map((order) => {
+            const filteredTransactions = order.transaction.filter(
+              (transaction) => {
+                return transaction.workshop_id == chosenWorkshop.workshop_id;
+              }
+            );
+
+            return {
+              ...order,
+              transaction: filteredTransactions,
+            };
+          });
+        }
+
+        setOrders(filterWorkshop);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    }
+  }
+
+  async function fetchData() {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND}/getWaiters?token=${token}`
+      );
+
+      const backData = response.data; // Access the data from the response
+      setData(backData);
+      return data; // If you need to return the data from this function
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
 
   useEffect(() => {
-    const getOrders = async () => {
-      if (accountSettings && chosenSpot) {
-        try {
-          const result = await axios.post(
-            `${import.meta.env.VITE_BACKEND}/getOrders`,
-            {
-              accountUrl: accountSettings.COMPANY_ID,
-            }
-          );
-
-          // Filter orders based on the chosen spot ID
-          let filteredOrders = result.data.filter(
-            (item) => item.accountData.spotId == chosenSpot.spot_id
-          );
-
-          let filterWorkshop = filteredOrders;
-
-          if (chosenWorkshop) {
-            filterWorkshop = filteredOrders.map((order) => {
-              const filteredTransactions = order.transaction.filter(
-                (transaction) => {
-                  return transaction.workshop_id == chosenWorkshop.workshop_id;
-                }
-              );
-
-              return {
-                ...order,
-                transaction: filteredTransactions,
-              };
-            });
-          }
-
-          setOrders(filterWorkshop);
-        } catch (error) {
-          console.error("Error fetching orders:", error);
-        }
-      }
-    };
-
-    getOrders();
+    Promise.all([getOrders(), fetchData()]);
   }, [accountSettings, chosenSpot, chosenWorkshop]); // Updated dependencies
 
-  const { data } = useQuery({
-    queryKey: ["getWaiters"],
-    queryFn: () =>
-      fetch(`${import.meta.env.VITE_BACKEND}/getWaiters?token=${token}`)
-        .then((res) => res.json())
-        .then((res) => res.response),
-  });
+  useEffect(() => {
+    // Handler for when the browser goes offline
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error("Вы не в сети. Пожалуйста, проверьте подключение к Интернету");
+    };
+
+    // Handler for when the browser comes online
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Вы снова в сети)");
+      Promise.all([getOrders(), fetchData()]);
+    };
+
+    // Adding event listeners for online and offline events
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    // Cleanup function to remove event listeners
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
 
   return (
     <DataContext.Provider
       value={{
-        order, setOrder,
+        isOnline,
+        setIsOnline,
+        order,
+        setOrder,
         product,
         setProduct,
         data,

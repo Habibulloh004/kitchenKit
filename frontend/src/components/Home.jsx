@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -70,10 +71,9 @@ const Home = () => {
 
   useEffect(() => {
     const createOrder = (data) => {
-      if (data.from !== "client" && data.spotId == spot.spot_id) {
-        console.log("Received order data:", data.order);
+      if (data.from == "poster" && data.spotId == spot.spot_id) {
         toast.success(
-          `Новый заказ № ${data.order.orderInformation.id.toString().slice(-2)}`
+          `Новый заказ № ${data.order.orderInformation.id.toString().slice(-4)}`
         );
 
         // Since data.order is a single object, we check the spotId directly
@@ -102,13 +102,11 @@ const Home = () => {
     };
 
     const changingOrder = (data) => {
-      if (data.from !== "client" && data.spotId == spot.spot_id) {
-        console.log("Received changing order data:", data.order);
-
+      if (data.from == "poster" && data.spotId == spot.spot_id) {
         toast.success(
           ` Офицант изменил заказ № ${data.order.orderInformation.id
             .toString()
-            .slice(-2)}`
+            .slice(-4)}`
         );
         // Since data.order is a single object, check the spotId directly
         if (data.order.accountData.spotId == chosenSpot.spot_id) {
@@ -142,12 +140,41 @@ const Home = () => {
       }
     };
 
+    const changeAllOrder = (data) => {
+      if (
+        data.from == "backend" &&
+        data.data.accountData.spotId == spot.spot_id
+      ) {
+        const updatedOrder = data.data;
+        const { orderId } = data.data;
+
+        if (data.data.item == "all") {
+          setOrders((prevOrders) =>
+            prevOrders.filter((order) => order.orderId != orderId)
+          );
+        } else {
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.orderId == orderId ? { ...order, ...updatedOrder } : order
+            )
+          );
+        }
+        // Update the order in the state
+      }
+    };
+    socket?.on("changeOrder", changeAllOrder);
+    socket?.on("deleteOrder", changeAllOrder);
+    socket?.on("deleteAllOrder", changeAllOrder);
+
     socket?.on("createOrder", createOrder);
     socket?.on("changeOrderDetails", changingOrder);
 
     return () => {
       socket?.off("createOrder", createOrder);
       socket?.off("changeOrderDetails", changingOrder);
+      socket?.off("changeOrder", changeAllOrder);
+      socket?.off("deleteOrder", changeAllOrder);
+      socket?.off("deleteAllOrder", changeAllOrder);
     };
   }, [socket]);
 
@@ -218,7 +245,6 @@ const Home = () => {
     }
   };
 
-
   if (!data) {
     return <Loader />;
   }
@@ -234,7 +260,7 @@ const Home = () => {
     <main className="h-[calc(100vh-48px)]">
       {isOpen && <DialogPopup />}
 
-      <section className="w-11/12 py-8 mx-auto grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 place-items-start">
+      <section className="w-11/12 py-8 mx-auto grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 place-items-start">
         {orders.map((order) => {
           const nameWaiter = data.find(
             (item) => item?.user_id == order.orderInformation?.userId
@@ -257,12 +283,20 @@ const Home = () => {
               >
                 <div className="flex justify-between items-center font-semibold">
                   <p className="text-2xl">
-                    № {order.orderInformation.id.toString().slice(-2)}
+                    № {order.orderInformation.id.toString().slice(-4)}
                   </p>
                   <span className="text-base text-gray-600 flex flex-col items-end">
                     <p>{nameWaiter && nameWaiter.name}</p>
                     <p>Стол {order.orderInformation.tableId}</p>
                   </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-gray-600">
+                    {truncateText(order?.orderInformation.comment)}
+                  </p>
+                  <p className="text-gray-600">
+                    {formatTimeFromNumber(order?.orderInformation.dateStart)}
+                  </p>
                 </div>
                 <section className="space-y-4">
                   {order.transaction &&
@@ -274,42 +308,22 @@ const Home = () => {
                         (orderItem) => orderItem?.commentItems?.length > 0
                       )
                       .map((orderItem, orderItemIndex) =>
-                        orderItem?.commentItems?.map((product, index) => (
-                          <article
-                            key={`${orderItemIndex}-${index}`}
-                            className="bg-white rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden"
-                          >
-                            <div
-                              className="flex gap-3 p-3 justify-between"
-                              onClick={async () => {
+                        orderItem?.commentItems?.map((product, index) => {
+                          return (
+                            <ProductTimer
+                              key={`${orderItemIndex}-${index}`}
+                              product={product}
+                              orderTime={order.orderInformation.dateStart}
+                              onClickHandler={() => {
                                 masterOrderInfo(product);
                                 masterBarInfo(orderItem);
                                 toggleDialog();
                                 setOrder(order);
                                 setProduct(product);
                               }}
-                            >
-                              <p className="font-semibold text-xl">
-                                {product.count}
-                              </p>
-                              <div className="flex justify-between items-start gap-5 w-3/4">
-                                <span className="space-y-2">
-                                  <p className="font-semibold text-lg">
-                                    {product?.product_name}
-                                  </p>
-                                  <p className="text-gray-600">
-                                    {truncateText(orderItem?.comment, 5)}
-                                  </p>
-                                </span>
-                                <p className="text-gray-600 font-semibold">
-                                  {formatTimeFromNumber(
-                                    order.orderInformation.dateStart
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          </article>
-                        ))
+                            />
+                          );
+                        })
                       )}
                   <button
                     key={order.orderId}
@@ -329,5 +343,77 @@ const Home = () => {
     </main>
   );
 };
+
+function ProductTimer({ product, orderTime, onClickHandler }) {
+  const [remainingTime, setRemainingTime] = useState(product.cooking_time); // Initialize with cooking time in seconds
+  const [backgroundColor, setBackgroundColor] = useState("bg-white text-black"); // Default background color
+
+  useEffect(() => {
+    if (product.cooking_time == 0 || product.cooking_time == undefined) {
+      setBackgroundColor("bg-white text-black");
+      setRemainingTime(0);
+      return;
+    }
+
+    // Ensure orderTime is correctly interpreted as a Unix timestamp in milliseconds
+    const createdTime = new Date(orderTime); // orderTime is already in milliseconds
+    if (isNaN(createdTime.getTime())) {
+      console.error("Invalid orderTime:", orderTime);
+      setRemainingTime(0);
+      return;
+    }
+
+    const currentTime = Date.now(); // Current time in milliseconds
+    const elapsedTime = Math.floor(
+      (currentTime - createdTime.getTime()) / 1000
+    ); // Elapsed time in seconds
+
+    setRemainingTime(Math.max(product.cooking_time - elapsedTime, 0));
+
+    const intervalId = setInterval(() => {
+      setRemainingTime((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [orderTime, product.cooking_time]);
+
+  useEffect(() => {
+    if (product.cooking_time == 0 || product.cooking_time == undefined) {
+      setBackgroundColor("bg-white text-black");
+    } else if (remainingTime < 60) {
+      setBackgroundColor("bg-red-500 text-white");
+    } else if (remainingTime < 180) {
+      setBackgroundColor("bg-yellow-500 text-white");
+    } else {
+      setBackgroundColor("bg-green-500 text-white");
+    }
+  }, [remainingTime, product.cooking_time]);
+
+  const formatTime = (time) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
+
+  return (
+    <article
+      className={`${backgroundColor} rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden`}
+      onClick={onClickHandler}
+    >
+      <div className="flex gap-3 p-3 justify-between">
+        <p className="font-semibold text-xl">{product.count}</p>
+        <div className="flex justify-between items-start gap-5 w-3/4">
+          <span className="space-y-2">
+            <p className="font-semibold text-lg">{product?.product_name}</p>
+          </span>
+          <p className="text-gray-800 font-semibold">
+            {product.cooking_time && formatTime(remainingTime)}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default Home;
