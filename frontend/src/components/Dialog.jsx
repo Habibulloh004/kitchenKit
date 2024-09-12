@@ -187,8 +187,6 @@ const DialogPopup = () => {
           );
 
           // Output 0 if all are empty, otherwise 1
-          console.log(allEmpty ? 0 : 1);
-          console.log(allEmpty);
           if (allEmpty) {
             const response = await axios.delete(
               `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
@@ -227,6 +225,31 @@ const DialogPopup = () => {
             )
           );
         }
+        let filterWorkshop = productChangeStatus.data.updatedOrderMe;
+
+        // Filter transactions based on the chosen workshop if applicable
+        const filteredTransactions =
+          productChangeStatus.data.updatedOrderMe.transaction.filter(
+            (transaction) => {
+              return transaction.workshop_id == chosenWorkshop.workshop_id;
+            }
+          );
+
+        // Update the order to only include the filtered transactions
+        filterWorkshop = {
+          ...productChangeStatus.data.updatedOrderMe,
+          transaction: filteredTransactions,
+        };
+
+        // Update the order in the state by matching the orderId
+        setOrders((prevOrders) =>
+          prevOrders.map(
+            (order) =>
+              order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+                ? { ...order, ...filterWorkshop } // Update the order with new data
+                : order // Keep the same order if the ID does not match
+          )
+        );
       }
 
       // if (chosenWorkshop) {
@@ -297,7 +320,8 @@ const DialogPopup = () => {
                 </div>
                 <span className="space-y-2">
                   <p className="text-xl font-semibold">
-                    {orderInfo.product_name}
+                    {console.log(orderInfo)}
+                    {orderInfo.product_name} {`${orderInfo.modificationName ? `(${orderInfo.modificationName})` : "" }`}
                   </p>
                   <p className="font-medium text-gray-500">
                     Кол-во: {orderInfo.count}

@@ -92,12 +92,12 @@ app.get("/checkToken", async (req, res) => {
 
 app.get("/getWaiters", async (req, res) => {
   try {
+    console.log("req");
     // Fetch employees using the provided token
     const employee = await axios.get(
       `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
     );
 
-    console.log("employee", employee.data);
 
     // Filter out waiters (user_type 0) from the response
     const waiters = employee.data.response.filter(

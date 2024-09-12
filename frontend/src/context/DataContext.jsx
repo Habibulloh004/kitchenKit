@@ -103,7 +103,7 @@ export const DataContextProvider = ({ children }) => {
 
   useEffect(() => {
     Promise.all([getOrders(), fetchData()]);
-  }, [accountSettings, chosenSpot, chosenWorkshop]); // Updated dependencies
+  }, [accountSettings]); // Updated dependencies
 
   useEffect(() => {
     // Handler for when the browser goes offline

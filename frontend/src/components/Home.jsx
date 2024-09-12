@@ -69,7 +69,6 @@ const Home = () => {
 
     checkToken();
   }, [token, haveToken]);
-  console.log(notice);
 
   useEffect(() => {
     const createOrder = (data) => {
@@ -148,26 +147,42 @@ const Home = () => {
 
     const changeAllOrder = (data) => {
       if (
-        data.from == "backend" &&
-        data.data.accountData.spotId == spot.spot_id
+        data.from === "backend" &&
+        data.data.accountData.spotId === spot.spot_id
       ) {
-        const updatedOrder = data.data;
+        let updatedOrder = data.data;
         const { orderId } = data.data;
-
-        if (data.data.item == "all") {
+        console.log(data);
+    
+        // Filter transactions based on the chosen workshop if applicable
+        if (chosenWorkshop) {
+          const filteredTransactions = updatedOrder.transaction.filter(
+            (transaction) => transaction.workshop_id === chosenWorkshop.workshop_id
+          );
+    
+          // Update the order to only include the filtered transactions
+          updatedOrder = {
+            ...updatedOrder,
+            transaction: filteredTransactions,
+          };
+        }
+    
+        // Remove the order if the `item` is "all"
+        if (updatedOrder.item === "all") {
           setOrders((prevOrders) =>
-            prevOrders.filter((order) => order.orderId != orderId)
+            prevOrders.filter((order) => order.orderId !== orderId)
           );
         } else {
+          // Update the order in the state by matching the orderId
           setOrders((prevOrders) =>
             prevOrders.map((order) =>
-              order.orderId == orderId ? { ...order, ...updatedOrder } : order
+              order.orderId === orderId ? { ...updatedOrder } : order
             )
           );
         }
-        // Update the order in the state
       }
     };
+    
     socket?.on("changeOrder", changeAllOrder);
     socket?.on("deleteOrder", changeAllOrder);
     socket?.on("deleteAllOrder", changeAllOrder);
@@ -183,6 +198,7 @@ const Home = () => {
       socket?.off("deleteAllOrder", changeAllOrder);
     };
   }, [socket]);
+
 
   const closeTransaction = async (orderId, order) => {
     try {
@@ -411,7 +427,7 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
         <p className="font-semibold text-xl">{product.count}</p>
         <div className="flex justify-between items-start gap-5 w-3/4">
           <span className="space-y-2">
-            <p className="font-semibold text-lg">{product?.product_name}</p>
+            <p className="font-semibold text-lg">{product?.product_name} {`${product.modificationName ? `(${product.modificationName})` : "" }`}</p>
           </span>
           <p className="text-gray-800 font-semibold">
             {product.cooking_time && formatTime(remainingTime)}
