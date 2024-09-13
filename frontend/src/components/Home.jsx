@@ -267,6 +267,8 @@ const Home = () => {
     }
   };
 
+  console.log(orders);
+
   if (!data) {
     return <Loader />;
   }
@@ -309,7 +311,7 @@ const Home = () => {
                   </p>
                   <span className="text-base text-gray-600 flex flex-col items-end">
                     <p>{nameWaiter && nameWaiter.name}</p>
-                    <p>Стол {order.orderInformation.tableId}</p>
+                    <p>Стол {order.orderInformation.tableName.table_num}</p>
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">

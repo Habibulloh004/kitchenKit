@@ -98,12 +98,6 @@ app.get("/getWaiters", async (req, res) => {
       `https://joinposter.com/api/access.getEmployees?token=${req.query.token}`
     );
 
-
-    // Filter out waiters (user_type 0) from the response
-    const waiters = employee.data.response.filter(
-      (item) => item.user_type == 0
-    );
-
     // Send the filtered waiters as the response
     res.send(employee.data.response);
   } catch (error) {
