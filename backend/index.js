@@ -38,7 +38,7 @@ app.get("/auth", async (req, res) => {
   if (req.query.code) {
     const auth = {
       application_id: 3629,
-      application_secret: "88784f4287b6c9b3e0eada9d06b8c4b2",
+      application_secret: "586a61d2f3a718c1d6daeb847e690230",
       code: req.query.code,
       account: req.query.account,
     };
@@ -240,9 +240,167 @@ app.post("/createOrder", async (req, res) => {
 //   }
 // });
 
-app.put("/deleteItem/:orderId", async (req, res) => {
-  console.log("Request received to delete an item");
-  const { item, order, token, status } = req.body; // Extract item from the request body
+// app.put("/deleteItem/:orderId", async (req, res) => {
+//   console.log("Request received to delete an item");
+//   const { item, order, token, status } = req.body; // Extract item from the request body
+//   const orderId = req.params.orderId; // Extract orderId from the route parameters
+
+//   try {
+//     // Find the order by orderId in the database
+//     const orderMe = await Order.findOne({ orderId });
+
+//     // If the order is not found, return a 404 error
+//     if (!orderMe) {
+//       return res.status(404).json({ message: "OrderMe not found" });
+//     }
+
+//     // Find the index of the workshop in the orderMe's transaction array
+//     const workshopIndex = orderMe.transaction.findIndex(
+//       (workshop) => workshop.workshop_id == item.workshop
+//     );
+
+//     if (workshopIndex !== -1) {
+//       // Filter out the item that needs to be deleted
+//       const originalLength =
+//         orderMe.transaction[workshopIndex].commentItems.length;
+
+//       orderMe.transaction[workshopIndex].commentItems = orderMe.transaction[
+//         workshopIndex
+//       ].commentItems.filter(
+//         (commentItem) => commentItem.product_id != item.product_id
+//       );
+
+//       // Check if an item was actually removed
+//       if (
+//         orderMe.transaction[workshopIndex].commentItems.length == originalLength
+//       ) {
+//         return res
+//           .status(404)
+//           .json({ message: "Item not found in the orderMe" });
+//       }
+
+//       // Mark the transaction field as modified
+//       orderMe.markModified("transaction");
+
+//       // Save the updated orderMe to the database
+//       const updatedOrderMe = await orderMe.save();
+//       console.log(orderMe);
+
+//       // Send the updated order back to the client
+//       if (status == "delete") {
+//         // const deleteItem = await axios.post(
+//         //   `https://joinposter.com/api/transactions.removeTransactionProduct?token=${token}`,
+//         //   {
+//         //     spot_id: +order.accountData.spotId,
+//         //     spot_tablet_id: +order.accountData.spotTabletId,
+//         //     transaction_id: +orderId,
+//         //     product_id: +item.product_id,
+//         //   }
+//         // );
+//         // console.log("delete", deleteItem.data);
+//       }
+
+//       res.send({ message: "Item deleted successfully", updatedOrderMe });
+//     } else {
+//       // If the workshop is not found, return a 400 error
+//       return res.status(400).json({ message: "Workshop not found" });
+//     }
+//   } catch (error) {
+//     // Log the error and return a 500 error
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+// app.put("/deleteItem/:orderId", async (req, res) => {
+//   console.log("Request received to delete an item");
+//   const { item, token, status, count } = req.body; // Extract item and count from the request body
+//   const orderId = req.params.orderId; // Extract orderId from the route parameters
+
+//   try {
+//     // Find the order by orderId in the database
+//     const orderMe = await Order.findOne({ orderId });
+
+//     // If the order is not found, return a 404 error
+//     if (!orderMe) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     // Find the index of the workshop in the order's transaction array
+//     const workshopIndex = orderMe.transaction.findIndex(
+//       (workshop) => workshop.workshop_id == item.workshop
+//     );
+
+//     if (workshopIndex !== -1) {
+//       // Find the item in the commentItems array
+//       const commentItemIndex = orderMe.transaction[
+//         workshopIndex
+//       ].commentItems.findIndex(
+//         (commentItem) => commentItem.product_id == item.product_id
+//       );
+
+//       if (commentItemIndex !== -1) {
+//         const commentItem =
+//           orderMe.transaction[workshopIndex].commentItems[commentItemIndex];
+
+//         // Check if the count to delete is greater than the available count
+//         if (count > commentItem.count) {
+//           return res
+//             .status(400)
+//             .json({ message: "Count to delete exceeds available quantity" });
+//         }
+
+//         // Decrease the count
+//         commentItem.count -= count;
+
+//         // If the count reaches zero, remove the item
+//         if (commentItem.count <= 0) {
+//           orderMe.transaction[workshopIndex].commentItems.splice(
+//             commentItemIndex,
+//             1
+//           );
+//         }
+
+//         // Mark the transaction as modified
+//         orderMe.markModified("transaction");
+
+//         // Save the updated order
+//         const updatedOrderMe = await orderMe.save();
+
+//         // If status is "delete", make external API call for the deletion
+//         if (status == "delete") {
+//           // const deleteItem = await axios.post(
+//           //   `https://joinposter.com/api/transactions.removeTransactionProduct?token=${token}`,
+//           //   {
+//           //     spot_id: +order.accountData.spotId,
+//           //     spot_tablet_id: +order.accountData.spotTabletId,
+//           //     transaction_id: +orderId,
+//           //     product_id: +item.product_id,
+//           //   }
+//           // );
+//           // console.log("delete", deleteItem.data);
+//         }
+
+//         // Return the updated order
+//         res.send({ message: "Item updated successfully", updatedOrderMe });
+//       } else {
+//         return res
+//           .status(404)
+//           .json({ message: "Item not found in the workshop" });
+//       }
+//     } else {
+//       return res.status(400).json({ message: "Workshop not found" });
+//     }
+//   } catch (error) {
+//     // Log the error and return a 500 error
+//     console.error(error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
+app.put("/changeOrderStatus/:orderId", async (req, res) => {
+  console.log("Request received to change order status");
+  const { item, token, status, count } = req.body; // Extract item, status, and count from the request body
   const orderId = req.params.orderId; // Extract orderId from the route parameters
 
   try {
@@ -251,58 +409,68 @@ app.put("/deleteItem/:orderId", async (req, res) => {
 
     // If the order is not found, return a 404 error
     if (!orderMe) {
-      return res.status(404).json({ message: "OrderMe not found" });
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    // Find the index of the workshop in the orderMe's transaction array
+    // Find the index of the workshop in the order's transaction array
     const workshopIndex = orderMe.transaction.findIndex(
       (workshop) => workshop.workshop_id == item.workshop
     );
 
     if (workshopIndex !== -1) {
-      // Filter out the item that needs to be deleted
-      const originalLength =
-        orderMe.transaction[workshopIndex].commentItems.length;
-
-      orderMe.transaction[workshopIndex].commentItems = orderMe.transaction[
+      // Find the item in the commentItems array
+      const commentItemIndex = orderMe.transaction[
         workshopIndex
-      ].commentItems.filter(
-        (commentItem) => commentItem.product_id != item.product_id
+      ].commentItems.findIndex(
+        (commentItem) => commentItem.product_id == item.product_id
       );
 
-      // Check if an item was actually removed
-      if (
-        orderMe.transaction[workshopIndex].commentItems.length == originalLength
-      ) {
+      if (commentItemIndex !== -1) {
+        const commentItem =
+          orderMe.transaction[workshopIndex].commentItems[commentItemIndex];
+
+        // Check if count adjustment is necessary
+        if (count && count > 0 && count <= commentItem.count) {
+          commentItem.count -= count;
+        }
+
+        // Update the status of the item based on the input
+        if (status) {
+          commentItem.status = status;
+        }
+
+        // Mark the transaction as modified
+        orderMe.markModified("transaction");
+
+        // Save the updated order
+        const updatedOrderMe = await orderMe.save();
+
+        // Optionally handle an external API call based on status (if needed)
+        if (status === "delete") {
+          // Optionally handle deletion API logic here
+          // const deleteItem = await axios.post(
+          //   `https://joinposter.com/api/transactions.removeTransactionProduct?token=${token}`,
+          //   {
+          //     spot_id: +order.accountData.spotId,
+          //     spot_tablet_id: +order.accountData.spotTabletId,
+          //     transaction_id: +orderId,
+          //     product_id: +item.product_id,
+          //   }
+          // );
+          // console.log("delete", deleteItem.data);
+        }
+
+        // Return the updated order
+        res.send({
+          message: "Order status updated successfully",
+          updatedOrderMe,
+        });
+      } else {
         return res
           .status(404)
-          .json({ message: "Item not found in the orderMe" });
+          .json({ message: "Item not found in the workshop" });
       }
-
-      // Mark the transaction field as modified
-      orderMe.markModified("transaction");
-
-      // Save the updated orderMe to the database
-      const updatedOrderMe = await orderMe.save();
-      console.log(orderMe);
-
-      // Send the updated order back to the client
-      if (status == "delete") {
-        // const deleteItem = await axios.post(
-        //   `https://joinposter.com/api/transactions.removeTransactionProduct?token=${token}`,
-        //   {
-        //     spot_id: +order.accountData.spotId,
-        //     spot_tablet_id: +order.accountData.spotTabletId,
-        //     transaction_id: +orderId,
-        //     product_id: +item.product_id,
-        //   }
-        // );
-        // console.log("delete", deleteItem.data);
-      }
-
-      res.send({ message: "Item deleted successfully", updatedOrderMe });
     } else {
-      // If the workshop is not found, return a 400 error
       return res.status(400).json({ message: "Workshop not found" });
     }
   } catch (error) {

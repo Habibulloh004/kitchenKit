@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { navbarItems } from "../utils";
 import { useEffect, useState } from "react";
 import Spots from "./Spots";
-import toast from "react-hot-toast";
-import Cookies from "js-cookie";
+// import toast from "react-hot-toast";
+// import Cookies from "js-cookie";
 import Workshops from "./Workshops";
 import { useDataContext } from "../context/DataContext";
 
@@ -30,7 +30,7 @@ const Navbar = () => {
   return (
     <header className="bg-blue-600 fixed top-0 w-full z-50">
       <nav className="flex justify-between items-center text-white h-12">
-        {/* <ul className="flex items-center space-x-4">
+        <ul className="flex items-center space-x-4">
           {navbarItems.map((item) => (
             <li key={item.id}>
               <Link
@@ -46,12 +46,39 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
-        </ul> */}
+        </ul>
         <div></div>
         <div className="flex items-center gap-4 md:gap-10">
+          {/* <p
+            onClick={() => {
+              toast(
+                (t) => (
+                  <span className="flex gap-3">
+                    Связаться с нами <br />
+                    {`+998(93) 520-40-50 Хабибуллох`}
+                    <div className="flex items-end gap-3">
+                      <button
+                        className="py-1 px-4 pb-2 rounded-md border border-gray-500"
+                        onClick={() => toast.dismiss(t.id)}
+                      >
+                        Отмена
+                      </button>
+                    </div>
+                  </span>
+                ),
+                {
+                  duration: 10000,
+                  icon: "☎",
+                }
+              );
+            }}
+            className="inline-flex items-center gap-2 rounded-md bg-blue-500/50 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+          >
+            Тех. поддержка
+          </p> */}
           <Workshops />
           <Spots />
-          <p
+          {/* <p
             onClick={() => {
               toast(
                 (t) => (
@@ -96,7 +123,7 @@ const Navbar = () => {
             className="inline-flex items-center gap-2 rounded-md bg-red-500 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
           >
             Выйти
-          </p>
+          </p> */}
           <div>
             {isOnline ? (
               <div className="bg-green-500 w-[10px] h-[10px] rounded-full"></div>

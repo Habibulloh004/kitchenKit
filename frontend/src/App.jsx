@@ -11,6 +11,9 @@ import Navbar from "./components/Navbar";
 const Home = lazy(() => import("./components/Home"));
 const Order = lazy(() => import("./components/Order"));
 const History = lazy(() => import("./components/History"));
+import toast from "react-hot-toast";
+// import Spots from "./components/Spots";
+// import Workshops from "./components/Workshops";
 
 // const ProtectedRoute = ({ element }) => {
 //   const location = useLocation();
@@ -99,7 +102,7 @@ function App() {
           </main>
         </>
       ) : (
-        <main className="relative">
+        <main className="relative min-h-screen">
           <Toaster position="top-center" reverseOrder={false} />
 
           <Navbar />
@@ -122,8 +125,89 @@ function App() {
             </Suspense>
             <Toaster position="top-center" reverseOrder={false} />
           </div>
-          <div className="absolute bottom-5 right-5 rounded-full p-2 bg-white/70" onClick={() => window.location.reload()}>
-            <IoReload />
+          <div
+              className="fixed bottom-5 left-5 rounded-full p-2 bg-white/70"
+              onClick={() => window.location.reload()}
+            >
+              <IoReload />
+            </div>
+          <div className="fixed bottom-5 right-5 flex flex-col items-end gap-3">
+            
+            <div className="flex flex-col items-end gap-3">
+              <p
+                onClick={() => {
+                  toast(
+                    (t) => (
+                      <span className="flex gap-3">
+                        Вы уверены, что хотите выйти из своей учетной записи?
+                        <div className="flex items-end gap-3">
+                          <button
+                            className="py-1 px-4 pb-2 rounded-md text-white bg-red-500"
+                            onClick={() => {
+                              toast.dismiss(t.id);
+                              Cookies.remove("authToken");
+                              localStorage.clear();
+                              // location.pathname = `https://joinposter.com/api/auth?application_id=3629&redirect_uri=${
+                              //   import.meta.env.VITE_BACKEND
+                              // }/auth&response_type=code`;
+                              window.location.href = `https://joinposter.com/api/auth?application_id=3629&redirect_uri=${
+                                import.meta.env.VITE_BACKEND
+                              }/auth&response_type=code`;
+                              // navigate("/")
+                            }}
+                          >
+                            да
+                          </button>
+                          <button
+                            className="py-1 px-4 pb-2 rounded-md border border-gray-500"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            нет
+                          </button>
+                        </div>
+                      </span>
+                    ),
+                    {
+                      duration: 10000,
+                      icon: "❓",
+                      style: {
+                        minWidth: "500px",
+                      },
+                    }
+                  );
+                }}
+                className="inline-flex items-center gap-2 rounded-md bg-red-500 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+              >
+                Выйти
+              </p>
+              <p
+                onClick={() => {
+                  toast(
+                    (t) => (
+                      <span className="flex gap-3">
+                        Связаться с нами <br />
+                        {`+998(93) 520-40-50 Хабибуллох`}
+                        <div className="flex items-end gap-3">
+                          <button
+                            className="py-1 px-4 pb-2 rounded-md border border-gray-500"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            Отмена
+                          </button>
+                        </div>
+                      </span>
+                    ),
+                    {
+                      duration: 10000,
+                      icon: "☎",
+                    }
+                  );
+                }}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-500/50 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+              >
+                Тех. поддержка
+              </p>
+            </div>
           </div>
         </main>
       )}

@@ -8,6 +8,7 @@ import { useSocketContext } from "../context/SocketContext";
 import axios from "axios";
 import { useState } from "react";
 import Cookies from "js-cookie";
+import toast from "react-hot-toast";
 
 const DialogPopup = () => {
   const {
@@ -23,6 +24,7 @@ const DialogPopup = () => {
   } = useDataContext();
   const token = Cookies.get("authToken");
   const isDataLoaded = orderInfo && barInfo;
+  // const [promptCount, setPromptCount] = useState("")
   const { socket } = useSocketContext();
   const [chosenWorkshop] = useState(
     JSON.parse(localStorage.getItem("workshop")) || null
@@ -98,11 +100,12 @@ const DialogPopup = () => {
   //   }
   // };
 
-  const deleteItem = async (orderId, item, status) => {
+
+  const deleteItem = async (orderId, item, status, count) => {
     try {
       const productChangeStatus = await axios.put(
-        `${import.meta.env.VITE_BACKEND}/deleteItem/${orderId}`,
-        { item, order, token, status }
+        `${import.meta.env.VITE_BACKEND}/changeOrderStatus/${orderId}`,
+        { item, order, token, status, count }
       );
 
       const updatedTransactions =
@@ -112,49 +115,57 @@ const DialogPopup = () => {
         throw new Error("Invalid response from the server.");
       }
 
-      setOrders((prevOrders) => {
-        return prevOrders.map((order) => {
-          if (
-            order.orderId === productChangeStatus.data.updatedOrderMe.orderId
-          ) {
-            return {
-              ...order,
-              transaction: order.transaction.map((transaction) => {
-                const updatedTransaction = updatedTransactions.find(
-                  (updatedTran) =>
-                    updatedTran.workshop_id === transaction.workshop_id
-                );
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+            ? { ...order, ...productChangeStatus.data.updatedOrderMe }
+            : order
+        )
+      );
 
-                if (!updatedTransaction) {
-                  return transaction;
-                }
+      // setOrders((prevOrders) => {
+      //   return prevOrders.map((order) => {
+      //     if (
+      //       order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+      //     ) {
+      //       return {
+      //         ...order,
+      //         transaction: order.transaction.map((transaction) => {
+      //           const updatedTransaction = updatedTransactions.find(
+      //             (updatedTran) =>
+      //               updatedTran.workshop_id === transaction.workshop_id
+      //           );
 
-                return {
-                  ...transaction,
-                  commentItems: transaction.commentItems
-                    .map((commentItem) => {
-                      const updatedItem = updatedTransaction.commentItems.find(
-                        (updatedItem) =>
-                          updatedItem.product_id === commentItem.product_id
-                      );
-                      if (updatedItem) {
-                        return { ...commentItem, status: updatedItem.status };
-                      }
-                      return commentItem;
-                    })
-                    .filter((commentItem) =>
-                      updatedTransaction.commentItems.some(
-                        (updatedItem) =>
-                          updatedItem.product_id === commentItem.product_id
-                      )
-                    ),
-                };
-              }),
-            };
-          }
-          return order;
-        });
-      });
+      //           if (!updatedTransaction) {
+      //             return transaction;
+      //           }
+
+      //           return {
+      //             ...transaction,
+      //             commentItems: transaction.commentItems
+      //               .map((commentItem) => {
+      //                 const updatedItem = updatedTransaction.commentItems.find(
+      //                   (updatedItem) =>
+      //                     updatedItem.product_id === commentItem.product_id
+      //                 );
+      //                 if (updatedItem) {
+      //                   return { ...commentItem, status: updatedItem.status };
+      //                 }
+      //                 return commentItem;
+      //               })
+      //               .filter((commentItem) =>
+      //                 updatedTransaction.commentItems.some(
+      //                   (updatedItem) =>
+      //                     updatedItem.product_id === commentItem.product_id
+      //                 )
+      //               ),
+      //           };
+      //         }),
+      //       };
+      //     }
+      //     return order;
+      //   });
+      // });
 
       if (status == "finished") {
         socket.emit("frontData", {
@@ -167,6 +178,7 @@ const DialogPopup = () => {
           ...productChangeStatus.data.updatedOrderMe,
           item,
           status,
+          count
         });
       }
 
@@ -295,6 +307,7 @@ const DialogPopup = () => {
   if (!isDataLoaded) {
     return <Loader />;
   }
+  // console.log(promptCount);
 
   return (
     <>
@@ -318,10 +331,15 @@ const DialogPopup = () => {
                     alt=""
                   />
                 </div>
-                <span className="space-y-2">
-                  <p className="text-xl font-semibold">
+                <span className="space-y-2 text-xl">
+                  <p className=" font-semibold">
                     {console.log(orderInfo)}
-                    {orderInfo.product_name} {`${orderInfo.modificationName ? `(${orderInfo.modificationName})` : "" }`}
+                    {orderInfo.product_name}{" "}
+                    {`${
+                      orderInfo.modificationName
+                        ? `(${orderInfo.modificationName})`
+                        : ""
+                    }`}
                   </p>
                   <p className="font-medium text-gray-500">
                     Кол-во: {orderInfo.count}
@@ -349,10 +367,26 @@ const DialogPopup = () => {
                   {orderInfo.ingredients.map((item, idx) => (
                     <ul key={idx} className="flex justify-between">
                       <li className="w-1/2">{item.ingredient_name}</li>
-                      <li className="w-2/12">{item.structure_netto}</li>
+                      <li className="w-2/12">
+                        {item.structure_netto}{" "}
+                        {item.structure_unit == "g"
+                          ? "г"
+                          : item.structure_unit == "l"
+                          ? "л"
+                          : item.structure_unit == "p"
+                          ? "шт"
+                          : "мл"}
+                      </li>
                       <li className="w-3/12"></li>
                       <li className="w-2/12 text-right">
-                        {item.structure_brutto}
+                        {parseFloat(item.structure_brutto)}{" "}
+                        {item.structure_unit == "g"
+                          ? "г"
+                          : item.structure_unit == "l"
+                          ? "л"
+                          : item.structure_unit == "p"
+                          ? "шт"
+                          : "мл"}
                       </li>
                     </ul>
                   ))}
@@ -363,7 +397,18 @@ const DialogPopup = () => {
             <div className="flex justify-between items-center">
               <button
                 onClick={() => {
-                  deleteItem(order.orderId, product, "delete");
+                  let promptCount = parseInt(prompt("Добавить количество"), 10);
+
+                  if (isNaN(promptCount) || promptCount <= 0) {
+                    toast.error("Пожалуйста, введите допустимое количество.");
+                    return;
+                  }
+
+                  if (promptCount > orderInfo.count) {
+                    toast.error("Входное значение большое");
+                  } else {
+                    deleteItem(order.orderId, product, "delete", promptCount);
+                  }
                   toggleDialog(false);
                 }}
                 className="bg-red-500 p-3 w-2/5 rounded-md text-white flex justify-between"

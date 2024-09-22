@@ -48,7 +48,6 @@ export const DataContextProvider = ({ children }) => {
     setBarInfo(data);
   };
   async function getOrders() {
-    console.log("it works")
     if (accountSettings && chosenSpot) {
       try {
         const result = await axios.post(
@@ -80,6 +79,22 @@ export const DataContextProvider = ({ children }) => {
           });
         }
 
+        // filterWorkshop.map((order) => {
+        //   // Filter the transactions for each order
+        //   order.transaction = order.transaction.map((workshops) => {
+        //     // Filter commentItems to exclude finished products
+        //     workshops.commentItems = workshops.commentItems.filter(
+        //       (product) => {
+        //         return product.status !== "finished"; // Return the result of the condition
+        //       }
+        //     );
+
+        //     return workshops; // Return the modified workshops with filtered commentItems
+        //   });
+
+        //   return order; // Return the modified order with updated transactions
+        // });
+
         setOrders(filterWorkshop);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -109,7 +124,9 @@ export const DataContextProvider = ({ children }) => {
     // Handler for when the browser goes offline
     const handleOffline = () => {
       setIsOnline(false);
-      toast.error("Вы не в сети. Пожалуйста, проверьте подключение к Интернету");
+      toast.error(
+        "Вы не в сети. Пожалуйста, проверьте подключение к Интернету"
+      );
     };
 
     // Handler for when the browser comes online

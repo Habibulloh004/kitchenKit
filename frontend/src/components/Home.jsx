@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import notice from "../../public/notice.mp3";
 
+
 const Home = () => {
   const location = useLocation();
   const token = Cookies.get("authToken");
@@ -153,20 +154,21 @@ const Home = () => {
         let updatedOrder = data.data;
         const { orderId } = data.data;
         console.log(data);
-    
+
         // Filter transactions based on the chosen workshop if applicable
         if (chosenWorkshop) {
           const filteredTransactions = updatedOrder.transaction.filter(
-            (transaction) => transaction.workshop_id === chosenWorkshop.workshop_id
+            (transaction) =>
+              transaction.workshop_id === chosenWorkshop.workshop_id
           );
-    
+
           // Update the order to only include the filtered transactions
           updatedOrder = {
             ...updatedOrder,
             transaction: filteredTransactions,
           };
         }
-    
+
         // Remove the order if the `item` is "all"
         if (updatedOrder.item === "all") {
           setOrders((prevOrders) =>
@@ -182,7 +184,7 @@ const Home = () => {
         }
       }
     };
-    
+
     socket?.on("changeOrder", changeAllOrder);
     socket?.on("deleteOrder", changeAllOrder);
     socket?.on("deleteAllOrder", changeAllOrder);
@@ -199,8 +201,8 @@ const Home = () => {
     };
   }, [socket]);
 
-
   const closeTransaction = async (orderId, order) => {
+    console.log(order);
     try {
       if (chosenWorkshop == null) {
         const response = await axios.delete(
@@ -265,9 +267,26 @@ const Home = () => {
     } catch (error) {
       console.error("Error closing transaction", error);
     }
-  };
 
-  console.log(orders);
+    let ordersLocalstorage =
+      JSON.parse(localStorage.getItem("historyOrders")) || [];
+
+    // Find the order with the same _id in localStorage
+    const findingOrderIndex = ordersLocalstorage.findIndex(
+      (item) => item.orderId === order.orderId
+    );
+
+    if (findingOrderIndex !== -1) {
+      // If the order exists, replace it with the new order
+      ordersLocalstorage[findingOrderIndex] = order;
+    } else {
+      // If the order doesn't exist, push the new order to the array
+      ordersLocalstorage.push(order);
+    }
+
+    // Update localStorage with the modified orders array
+    localStorage.setItem("historyOrders", JSON.stringify(ordersLocalstorage));
+  };
 
   if (!data) {
     return <Loader />;
@@ -299,10 +318,9 @@ const Home = () => {
             }
           }
           return (
-            order.transaction.length > 0 &&
-            find(order) && (
+            order.transaction.length > 0 && (
               <article
-                key={order._id}
+                key={order.orderId}
                 className="bg-white/80 rounded-md p-4 pt-2 space-y-4 w-full"
               >
                 <div className="flex justify-between items-center font-semibold">
@@ -311,7 +329,7 @@ const Home = () => {
                   </p>
                   <span className="text-base text-gray-600 flex flex-col items-end">
                     <p>{nameWaiter && nameWaiter.name}</p>
-                    <p>Стол {order.orderInformation.tableName.table_num}</p>
+                    <p>Стол {order.orderInformation.tableName?.table_num}</p>
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
@@ -333,19 +351,24 @@ const Home = () => {
                       )
                       .map((orderItem, orderItemIndex) =>
                         orderItem?.commentItems?.map((product, index) => {
+                          if (product.status == "finished") {
+                            return null;
+                          }
                           return (
-                            <ProductTimer
-                              key={`${orderItemIndex}-${index}`}
-                              product={product}
-                              orderTime={order.orderInformation.dateStart}
-                              onClickHandler={() => {
-                                masterOrderInfo(product);
-                                masterBarInfo(orderItem);
-                                toggleDialog();
-                                setOrder(order);
-                                setProduct(product);
-                              }}
-                            />
+                            product.count > 0 && (
+                              <ProductTimer
+                                key={`${orderItemIndex}-${index}`}
+                                product={product}
+                                orderTime={order.orderInformation.dateStart}
+                                onClickHandler={() => {
+                                  masterOrderInfo(product);
+                                  masterBarInfo(orderItem);
+                                  toggleDialog();
+                                  setOrder(order);
+                                  setProduct(product);
+                                }}
+                              />
+                            )
                           );
                         })
                       )}
@@ -373,13 +396,12 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
   const [backgroundColor, setBackgroundColor] = useState("bg-white text-black"); // Default background color
 
   useEffect(() => {
-    if (product.cooking_time == 0 || product.cooking_time == undefined) {
+    if (product.cooking_time === 0 || product.cooking_time === undefined) {
       setBackgroundColor("bg-white text-black");
       setRemainingTime(0);
       return;
     }
 
-    // Ensure orderTime is correctly interpreted as a Unix timestamp in milliseconds
     const createdTime = new Date(orderTime); // orderTime is already in milliseconds
     if (isNaN(createdTime.getTime())) {
       console.error("Invalid orderTime:", orderTime);
@@ -402,14 +424,14 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
   }, [orderTime, product.cooking_time]);
 
   useEffect(() => {
-    if (product.cooking_time == 0 || product.cooking_time == undefined) {
+    const tenPercentTime = product.cooking_time * 0.1;
+
+    if (product.cooking_time === 0 || product.cooking_time === undefined) {
       setBackgroundColor("bg-white text-black");
-    } else if (remainingTime < 60) {
+    } else if (remainingTime < tenPercentTime) {
       setBackgroundColor("bg-red-500 text-white");
-    } else if (remainingTime < 180) {
-      setBackgroundColor("bg-yellow-500 text-white");
     } else {
-      setBackgroundColor("bg-green-500 text-white");
+      setBackgroundColor("bg-white text-black");
     }
   }, [remainingTime, product.cooking_time]);
 
@@ -422,22 +444,106 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
 
   return (
     <article
-      className={`${backgroundColor} rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden`}
-      onClick={onClickHandler}
+      className={`${
+        product.status == "deleted" ? "bg-black text-white" : backgroundColor
+      } rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden`}
+      onClick={product.status != "deleted" && onClickHandler}
     >
       <div className="flex gap-3 p-3 justify-between">
-        <p className="font-semibold text-xl">{product.count}</p>
+        <p className="font-semibold text-xl">
+          {product.status == "deleted" && "-"}
+          {product.count}
+        </p>
         <div className="flex justify-between items-start gap-5 w-3/4">
           <span className="space-y-2">
-            <p className="font-semibold text-lg">{product?.product_name} {`${product.modificationName ? `(${product.modificationName})` : "" }`}</p>
+            <p className="font-semibold text-lg">
+              {product?.product_name}{" "}
+              {`${
+                product.modificationName ? `(${product.modificationName})` : ""
+              }`}
+            </p>
           </span>
           <p className="text-gray-800 font-semibold">
-            {product.cooking_time && formatTime(remainingTime)}
+            {product.status != "deleted" &&
+              product.cooking_time &&
+              formatTime(remainingTime)}
           </p>
         </div>
       </div>
     </article>
   );
 }
+
+// function ProductTimer({ product, orderTime, onClickHandler }) {
+//   const [remainingTime, setRemainingTime] = useState(product.cooking_time); // Initialize with cooking time in seconds
+//   const [backgroundColor, setBackgroundColor] = useState("bg-white text-black"); // Default background color
+
+//   useEffect(() => {
+//     if (product.cooking_time == 0 || product.cooking_time == undefined) {
+//       setBackgroundColor("bg-white text-black");
+//       setRemainingTime(0);
+//       return;
+//     }
+
+//     // Ensure orderTime is correctly interpreted as a Unix timestamp in milliseconds
+//     const createdTime = new Date(orderTime); // orderTime is already in milliseconds
+//     if (isNaN(createdTime.getTime())) {
+//       console.error("Invalid orderTime:", orderTime);
+//       setRemainingTime(0);
+//       return;
+//     }
+
+//     const currentTime = Date.now(); // Current time in milliseconds
+//     const elapsedTime = Math.floor(
+//       (currentTime - createdTime.getTime()) / 1000
+//     ); // Elapsed time in seconds
+
+//     setRemainingTime(Math.max(product.cooking_time - elapsedTime, 0));
+
+//     const intervalId = setInterval(() => {
+//       setRemainingTime((prev) => Math.max(prev - 1, 0));
+//     }, 1000);
+
+//     return () => clearInterval(intervalId);
+//   }, [orderTime, product.cooking_time]);
+
+//   useEffect(() => {
+//     if (product.cooking_time == 0 || product.cooking_time == undefined) {
+//       setBackgroundColor("bg-white text-black");
+//     } else if (remainingTime < 60) {
+//       setBackgroundColor("bg-red-500 text-white");
+//     } else if (remainingTime < 180) {
+//       setBackgroundColor("bg-yellow-500 text-white");
+//     } else {
+//       setBackgroundColor("bg-green-500 text-white");
+//     }
+//   }, [remainingTime, product.cooking_time]);
+
+//   const formatTime = (time) => {
+//     if (isNaN(time)) return "0:00";
+//     const minutes = Math.floor(time / 60);
+//     const seconds = time % 60;
+//     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+//   };
+
+//   return (
+//     <article
+//       className={`${backgroundColor} rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden`}
+//       onClick={onClickHandler}
+//     >
+//       <div className="flex gap-3 p-3 justify-between">
+//         <p className="font-semibold text-xl">{product.count}</p>
+//         <div className="flex justify-between items-start gap-5 w-3/4">
+//           <span className="space-y-2">
+//             <p className="font-semibold text-lg">{product?.product_name} {`${product.modificationName ? `(${product.modificationName})` : "" }`}</p>
+//           </span>
+//           <p className="text-gray-800 font-semibold">
+//             {product.cooking_time && formatTime(remainingTime)}
+//           </p>
+//         </div>
+//       </div>
+//     </article>
+//   );
+// }
 
 export default Home;
