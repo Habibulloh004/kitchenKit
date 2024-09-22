@@ -93,7 +93,7 @@ const History = () => {
                   <h3 className="font-semibold">
                     Цех: {transaction.workshop_name}
                   </h3>
-                  <ul className="space-y-3 mt-3">
+                  <ul className="mt-3 flex gap-3">
                     {transaction.commentItems.map((item, idx) => {
                       if(item.count == 0 || item.status == "deleted") {
                         return null;
