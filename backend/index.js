@@ -38,7 +38,7 @@ app.get("/auth", async (req, res) => {
   if (req.query.code) {
     const auth = {
       application_id: 3629,
-      application_secret: "586a61d2f3a718c1d6daeb847e690230",
+      application_secret: "88784f4287b6c9b3e0eada9d06b8c4b2",
       code: req.query.code,
       account: req.query.account,
     };
