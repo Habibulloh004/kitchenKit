@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { navbarItems } from "../utils";
 import { useEffect, useState } from "react";
 import Spots from "./Spots";
@@ -8,9 +8,9 @@ import Workshops from "./Workshops";
 import { useDataContext } from "../context/DataContext";
 
 const Navbar = () => {
-  const [navIndex, setNavIndex] = useState(1);
   const [time, setTime] = useState(new Date());
-  const { isOnline } = useDataContext();
+  const { isOnline, getOrders } = useDataContext();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -35,12 +35,12 @@ const Navbar = () => {
             <li key={item.id}>
               <Link
                 className={`px-5 py-2 text-xl ${
-                  item.id === navIndex
+                  item.path === pathname
                     ? "text-white border-b-2 border-blue-200 font-semibold"
                     : "text-gray-300"
                 }`}
+                onClick={() => getOrders()}
                 to={item.path}
-                onClick={() => setNavIndex(item.id)}
               >
                 {item.name}
               </Link>

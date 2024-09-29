@@ -46,14 +46,14 @@ const History = () => {
       {orders.length === 0 ? (
         <p>Заказы отсутствуют</p>
       ) : (
-        <ul>
+        <ul className="flex gap-3 items-start justify-start flex-wrap">
           {orders.map((order) => (
             <li
               key={order._id}
               onClick={() => handleOrderClick(order)}
               className="cursor-pointer py-2 px-4 rounded-md bg-white/50 font-semibold"
             >
-              № {order.orderId.toString().slice(-4)}
+              № {order.orderInformation.orderName}
             </li>
           ))}
         </ul>
@@ -67,7 +67,7 @@ const History = () => {
             {/* Order ID, Waiter's Name, and Table Number */}
             <div className="flex justify-between items-center font-semibold">
               <p className="text-2xl">
-                № {selectedOrder.orderInformation.id.toString().slice(-4)}
+                № {selectedOrder.orderInformation.orderName}
               </p>
               <span className="text-base text-gray-600 flex flex-col items-end">
                 <p>
@@ -93,7 +93,7 @@ const History = () => {
                   <h3 className="font-semibold">
                     Цех: {transaction.workshop_name}
                   </h3>
-                  <ul className="mt-3 flex gap-3">
+                  <ul className="space-y-3 mt-3">
                     {transaction.commentItems.map((item, idx) => {
                       if(item.count == 0 || item.status == "deleted") {
                         return null;

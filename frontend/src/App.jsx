@@ -4,6 +4,8 @@ import { useState, useEffect, lazy, Suspense, useLayoutEffect } from "react";
 import { IoReload } from "react-icons/io5";
 import Loader from "./components/Loader/Loader";
 import Cookies from "js-cookie";
+import { MdSupportAgent } from "react-icons/md";
+import { GiExitDoor } from "react-icons/gi";
 // import Order from "./components/Order";
 // import Home from "./components/Home";
 // import History from "./components/History";
@@ -126,14 +128,40 @@ function App() {
             <Toaster position="top-center" reverseOrder={false} />
           </div>
           <div
-              className="fixed bottom-5 left-5 rounded-full p-2 bg-white/70"
-              onClick={() => window.location.reload()}
-            >
-              <IoReload />
-            </div>
+            className="fixed bottom-5 left-5 rounded-full p-2 bg-white/70"
+            onClick={() => window.location.reload()}
+          >
+            <IoReload />
+          </div>
           <div className="fixed bottom-5 right-5 flex flex-col items-end gap-3">
-            
             <div className="flex flex-col items-end gap-3">
+              <p
+                onClick={() => {
+                  toast(
+                    (t) => (
+                      <span className="flex gap-3">
+                        Связаться с нами <br />
+                        {`+998(93) 520-40-50 Хабибуллох`}
+                        <div className="flex items-end gap-3">
+                          <button
+                            className="py-1 px-4 pb-2 rounded-md border border-gray-500"
+                            onClick={() => toast.dismiss(t.id)}
+                          >
+                            Отмена
+                          </button>
+                        </div>
+                      </span>
+                    ),
+                    {
+                      duration: 10000,
+                      icon: "☎",
+                    }
+                  );
+                }}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-500/30 p-2 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+              >
+                <MdSupportAgent className="size-6" />
+              </p>
               <p
                 onClick={() => {
                   toast(
@@ -176,36 +204,9 @@ function App() {
                     }
                   );
                 }}
-                className="inline-flex items-center gap-2 rounded-md bg-red-500 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
+                className="inline-flex items-center gap-2 rounded-md bg-red-500 p-2 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
               >
-                Выйти
-              </p>
-              <p
-                onClick={() => {
-                  toast(
-                    (t) => (
-                      <span className="flex gap-3">
-                        Связаться с нами <br />
-                        {`+998(93) 520-40-50 Хабибуллох`}
-                        <div className="flex items-end gap-3">
-                          <button
-                            className="py-1 px-4 pb-2 rounded-md border border-gray-500"
-                            onClick={() => toast.dismiss(t.id)}
-                          >
-                            Отмена
-                          </button>
-                        </div>
-                      </span>
-                    ),
-                    {
-                      duration: 10000,
-                      icon: "☎",
-                    }
-                  );
-                }}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-500/50 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white"
-              >
-                Тех. поддержка
+                <GiExitDoor className="size-6" />
               </p>
             </div>
           </div>

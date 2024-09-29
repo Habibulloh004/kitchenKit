@@ -18,6 +18,7 @@ const corsOptions = {
     `${process.env.FRONT_URL}`,
     "https://platform.joinposter.com",
     "https://platform.joinposter.com",
+    "https://d1ce-213-230-82-72.ngrok-free.app"
   ],
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -67,6 +68,16 @@ app.get("/auth", async (req, res) => {
     }
   } else {
     res.status(400).send("No code provided");
+  }
+});
+
+app.get("/findOrder/:order", (req, res) => {
+  const findingOrder = Order.findOne({ orderId: Number(req.params.order) });
+  
+  if (findingOrder) {
+    return res.send(findingOrder);
+  } else {
+    return res.send("No order found!");
   }
 });
 
@@ -480,26 +491,84 @@ app.put("/changeOrderStatus/:orderId", async (req, res) => {
   }
 });
 
+// app.put("/closeTransaction/:orderId", async (req, res) => {
+//   const { workshopId } = req.body;
+//   const { orderId } = req.params;
+
+//   try {
+//     // Find the order and remove the workshop from the transaction array
+//     const updatedOrder = await Order.findOneAndUpdate(
+//       { orderId },
+//       { $pull: { transaction: { workshop_id: workshopId } } }, // Adjust this to match your schema
+//       { new: true }
+//     );
+
+//     if (updatedOrder) {
+//       res.send(updatedOrder);
+//     } else {
+//       res.status(404).send({ message: "Order not found" });
+//     }
+//   } catch (error) {
+//     console.error("Error updating order", error);
+//     res.status(500).send({ message: "Error updating order" });
+//   }
+// });
+
 app.put("/closeTransaction/:orderId", async (req, res) => {
-  const { workshopId } = req.body;
-  const { orderId } = req.params;
+  const { workshopId } = req.body; // Extract the workshopId from the body (if relevant)
+  const { orderId } = req.params; // Extract the orderId from the parameters
 
   try {
-    // Find the order and remove the workshop from the transaction array
-    const updatedOrder = await Order.findOneAndUpdate(
-      { orderId },
-      { $pull: { transaction: { workshop_id: workshopId } } }, // Adjust this to match your schema
-      { new: true }
-    );
+    // Find the order by orderId
+    const orderMe = await Order.findOne({ orderId });
 
-    if (updatedOrder) {
-      res.send(updatedOrder);
-    } else {
-      res.status(404).send({ message: "Order not found" });
+    if (!orderMe) {
+      return res.status(404).json({ message: "Order not found" });
     }
+
+    // If a specific workshopId is provided, update only that workshop, otherwise update all workshops
+    if (workshopId) {
+      // Find the index of the workshop in the order's transaction array
+      const workshopIndex = orderMe.transaction.findIndex(
+        (workshop) => workshop.workshop_id == workshopId
+      );
+
+      if (workshopIndex !== -1) {
+        // Update all "cooking" items to "finished" in the specified workshop
+        orderMe.transaction[workshopIndex].commentItems = orderMe.transaction[
+          workshopIndex
+        ].commentItems.map((commentItem) =>
+          commentItem.status === "cooking"
+            ? { ...commentItem, status: "finished" }
+            : commentItem
+        );
+      } else {
+        return res.status(404).json({ message: "Workshop not found" });
+      }
+    } else {
+      // If no workshopId is provided, update all workshops
+      orderMe.transaction.forEach((workshop) => {
+        workshop.commentItems = workshop.commentItems.map((commentItem) =>
+          commentItem.status === "cooking"
+            ? { ...commentItem, status: "finished" }
+            : commentItem
+        );
+      });
+    }
+
+    // Mark the transaction as modified and save the updated order
+    orderMe.markModified("transaction");
+    const updatedOrderMe = await orderMe.save();
+
+    // Return the updated order
+    res.send({
+      message: "All cooking items marked as finished",
+      updatedOrderMe,
+    });
   } catch (error) {
+    // Handle errors
     console.error("Error updating order", error);
-    res.status(500).send({ message: "Error updating order" });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

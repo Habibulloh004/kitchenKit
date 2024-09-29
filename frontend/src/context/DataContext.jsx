@@ -169,6 +169,7 @@ export const DataContextProvider = ({ children }) => {
         setLoading,
         orders,
         setOrders,
+        getOrders
       }}
     >
       {children}

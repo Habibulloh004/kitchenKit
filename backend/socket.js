@@ -23,7 +23,7 @@ const companies = {};
 
 io.on("connection", (socket) => {
   const companyId = socket.handshake.query.companyId;
-  console.log("companyId:",companyId);
+  console.log("companyId:", companyId);
   socket.join(companyId);
   socket.on("frontData", (data) => {
     console.log("fr", data);
@@ -38,6 +38,11 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("deleteAllOrder", {
       from: "backend",
       data,
+    });
+  });
+  socket.on("fromPoster", (data) => {
+    socket.broadcast.emit("deleteFromPoster", {
+      ...data,
     });
   });
   socket.on("deleteItem", (data) => {

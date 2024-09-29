@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import notice from "../../public/notice.mp3";
 
-
 const Home = () => {
   const location = useLocation();
   const token = Cookies.get("authToken");
@@ -76,8 +75,27 @@ const Home = () => {
       if (data.from == "poster" && data.spotId == spot.spot_id) {
         const sound = new Audio(notice);
         sound.play();
-        toast.success(
-          `Новый заказ № ${data.order.orderInformation.id.toString().slice(-4)}`
+        toast.success(`Новый заказ № ${data.order.orderInformation.orderName}`);
+        let ordersLocalstorage =
+          JSON.parse(localStorage.getItem("historyOrders")) || [];
+
+        // Find the order with the same _id in localStorage
+        const findingOrderIndex = ordersLocalstorage.findIndex(
+          (item) => item.orderId === data.order.orderId
+        );
+
+        if (findingOrderIndex !== -1) {
+          // If the order exists, replace it with the new order
+          ordersLocalstorage[findingOrderIndex] = data.order;
+        } else {
+          // If the order doesn't exist, push the new order to the array
+          ordersLocalstorage.push(data.order);
+        }
+
+        // Update localStorage with the modified orders array
+        localStorage.setItem(
+          "historyOrders",
+          JSON.stringify(ordersLocalstorage)
         );
 
         // Since data.order is a single object, we check the spotId directly
@@ -110,9 +128,28 @@ const Home = () => {
         const sound = new Audio(notice);
         sound.play();
         toast.success(
-          ` Офицант изменил заказ № ${data.order.orderInformation.id
-            .toString()
-            .slice(-4)}`
+          `Офицант изменил заказ № ${data.order.orderInformation.orderName}`
+        );
+        let ordersLocalstorage =
+          JSON.parse(localStorage.getItem("historyOrders")) || [];
+
+        // Find the order with the same _id in localStorage
+        const findingOrderIndex = ordersLocalstorage.findIndex(
+          (item) => item.orderId === data.order.orderId
+        );
+
+        if (findingOrderIndex !== -1) {
+          // If the order exists, replace it with the new order
+          ordersLocalstorage[findingOrderIndex] = data.order;
+        } else {
+          // If the order doesn't exist, push the new order to the array
+          ordersLocalstorage.push(data.order);
+        }
+
+        // Update localStorage with the modified orders array
+        localStorage.setItem(
+          "historyOrders",
+          JSON.stringify(ordersLocalstorage)
         );
         // Since data.order is a single object, check the spotId directly
         if (data.order.accountData.spotId == chosenSpot.spot_id) {
@@ -185,9 +222,16 @@ const Home = () => {
       }
     };
 
+    const changeFromPoster = (data) => {
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order.orderId != data.orderId)
+      );
+    };
+
     socket?.on("changeOrder", changeAllOrder);
     socket?.on("deleteOrder", changeAllOrder);
     socket?.on("deleteAllOrder", changeAllOrder);
+    socket?.on("deleteFromPoster", changeFromPoster);
 
     socket?.on("createOrder", createOrder);
     socket?.on("changeOrderDetails", changingOrder);
@@ -198,14 +242,14 @@ const Home = () => {
       socket?.off("changeOrder", changeAllOrder);
       socket?.off("deleteOrder", changeAllOrder);
       socket?.off("deleteAllOrder", changeAllOrder);
+      socket?.off("deleteFromPoster", changeFromPoster);
     };
   }, [socket]);
 
   const closeTransaction = async (orderId, order) => {
-    console.log(order);
     try {
       if (chosenWorkshop == null) {
-        const response = await axios.delete(
+        const response = await axios.put(
           `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
         );
         console.log("baaack", response.data);
@@ -221,25 +265,53 @@ const Home = () => {
         });
       } else {
         // Make a PUT request to delete the workshop from the transaction array
+        // const response = await axios.put(
+        //   `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`,
+        //   {
+        //     workshopId: chosenWorkshop.workshop_id, // Use the correct property name for workshop ID
+        //   }
+        // );
+        // console.log("baaack", response.data);
+
+        // // Update state to reflect the deleted workshop in the transaction array
+        // setOrders((prevOrders) =>
+        //   prevOrders.map((order) => {
+        //     if (order.orderId === orderId) {
+        //       // Remove the workshop from the transaction array
+        //       return {
+        //         ...order,
+        //         transaction: order.transaction.filter(
+        //           (transaction) =>
+        //             transaction.workshop_id !== chosenWorkshop.workshop_id
+        //         ),
+        //       };
+        //     }
+        //     return order;
+        //   })
+        // );
+
         const response = await axios.put(
           `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`,
-          {
-            workshopId: chosenWorkshop.workshop_id, // Use the correct property name for workshop ID
-          }
+          { workshopId: chosenWorkshop?.workshop_id } // Optionally pass workshopId
         );
-        console.log("baaack", response.data);
 
-        // Update state to reflect the deleted workshop in the transaction array
+        console.log("Transaction closed:", response.data);
+
+        // Update state to reflect changes (if necessary)
         setOrders((prevOrders) =>
           prevOrders.map((order) => {
             if (order.orderId === orderId) {
-              // Remove the workshop from the transaction array
+              // Update the state to mark all "cooking" items as "finished"
               return {
                 ...order,
-                transaction: order.transaction.filter(
-                  (transaction) =>
-                    transaction.workshop_id !== chosenWorkshop.workshop_id
-                ),
+                transaction: order.transaction.map((workshop) => ({
+                  ...workshop,
+                  commentItems: workshop.commentItems.map((item) =>
+                    item.status === "cooking"
+                      ? { ...item, status: "finished" }
+                      : item
+                  ),
+                })),
               };
             }
             return order;
@@ -252,17 +324,17 @@ const Home = () => {
         });
         console.log("loooog", response.data);
 
-        if (response.data.transaction.length == 0) {
-          const response = await axios.delete(
-            `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
-          );
-          console.log(response.data);
+        // if (response.data.transaction.length == 0) {
+        //   const response = await axios.delete(
+        //     `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+        //   );
+        //   console.log(response.data);
 
-          // Update state to remove the closed order
-          setOrders((prevOrders) =>
-            prevOrders.filter((order) => order.orderId !== orderId)
-          );
-        }
+        //   // Update state to remove the closed order
+        //   setOrders((prevOrders) =>
+        //     prevOrders.filter((order) => order.orderId !== orderId)
+        //   );
+        // }
       }
     } catch (error) {
       console.error("Error closing transaction", error);
@@ -299,6 +371,7 @@ const Home = () => {
     );
   }
 
+  console.log(orders);
   return (
     <main className="h-[calc(100vh-48px)]">
       {isOpen && <DialogPopup />}
@@ -308,15 +381,15 @@ const Home = () => {
           const nameWaiter = data.find(
             (item) => item?.user_id == order.orderInformation?.userId
           );
-          function find(order) {
-            if (chosenWorkshop) {
-              return order.transaction[0].commentItems.length == 0
-                ? false
-                : true;
-            } else {
-              return true;
-            }
-          }
+          // function find(order) {
+          //   if (chosenWorkshop) {
+          //     return order.transaction[0].commentItems.length == 0
+          //       ? false
+          //       : true;
+          //   } else {
+          //     return true;
+          //   }
+          // }
           return (
             order.transaction.length > 0 && (
               <article
@@ -325,7 +398,7 @@ const Home = () => {
               >
                 <div className="flex justify-between items-center font-semibold">
                   <p className="text-2xl">
-                    № {order.orderInformation.id.toString().slice(-4)}
+                    № {order.orderInformation.orderName}
                   </p>
                   <span className="text-base text-gray-600 flex flex-col items-end">
                     <p>{nameWaiter && nameWaiter.name}</p>
@@ -447,7 +520,11 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
       className={`${
         product.status == "deleted" ? "bg-black text-white" : backgroundColor
       } rounded-md shadow-md flex flex-col py-1 justify-center overflow-hidden`}
-      onClick={product.status != "deleted" && onClickHandler}
+      onClick={
+        product.status != "deleted"
+          ? onClickHandler
+          : () => console.log("hello")
+      }
     >
       <div className="flex gap-3 p-3 justify-between">
         <p className="font-semibold text-xl">
