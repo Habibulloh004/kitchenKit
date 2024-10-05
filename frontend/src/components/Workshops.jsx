@@ -3,6 +3,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useLocation } from "react-router-dom";
+import { FaCheck } from "react-icons/fa6";
 
 const Workshops = () => {
   const location = useLocation();
@@ -46,9 +47,7 @@ const Workshops = () => {
       {!workshops.length ? null : (
         <Menu>
           <MenuButton className="inline-flex items-center gap-2 rounded-md bg-gray-800 py-1.5 px-3 text-sm/6 font-semibold text-white shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-700 data-[open]:bg-gray-700 data-[focus]:outline-1 data-[focus]:outline-white">
-            {chosenWorkshop
-              ? `Цех: ${chosenWorkshop.workshop_name}`
-              : "Цех: Все"}
+            {chosenWorkshop && chosenWorkshop.length > 0 ? `Цех: ${chosenWorkshop.length}` : "Цех: Все"}
           </MenuButton>
           <MenuItems
             transition
@@ -58,13 +57,13 @@ const Workshops = () => {
             <MenuItem>
               <button
                 onClick={() => {
-                  localStorage.removeItem("workshop");
-                  setChosenWorkshop(null);
+                  localStorage.setItem("workshop", "[]");
+                  setChosenWorkshop([]);
                   window.location.reload();
                 }}
                 className="group flex w-full items-center gap-2 rounded-lg py-1.5 px-3 data-[focus]:bg-white/10"
               >
-                Все
+                {!chosenWorkshop || chosenWorkshop.length == 0 && <FaCheck />} Все
               </button>
             </MenuItem>
             {workshops.map((item) => {
@@ -72,13 +71,43 @@ const Workshops = () => {
                 <MenuItem key={item.workshop_id}>
                   <button
                     onClick={() => {
-                      localStorage.setItem("workshop", JSON.stringify(item));
-                      setChosenWorkshop(item);
+                      const storedWorkshop =
+                        JSON.parse(localStorage.getItem("workshop")) || [];
+                      let workshopArray = [...storedWorkshop];
+
+                      const itemExists = workshopArray.find(
+                        (workshop) => workshop.workshop_id === item.workshop_id
+                      );
+
+                      if (itemExists) {
+                        workshopArray = workshopArray.filter(
+                          (workshop) =>
+                            workshop.workshop_id !== item.workshop_id
+                        );
+                      } else {
+                        workshopArray.push(item);
+                      }
+
+                      // Update localStorage and set state separately
+                      localStorage.setItem(
+                        "workshop",
+                        JSON.stringify(workshopArray)
+                      );
+                      setChosenWorkshop(workshopArray);
                       window.location.reload();
                     }}
                     className="group flex w-full items-center gap-2 rounded-lg py-1.5 px-3 data-[focus]:bg-white/10"
                   >
-                    {item.workshop_name}
+                    {chosenWorkshop.length && chosenWorkshop?.find(
+                      (workshop) => workshop.workshop_id == item.workshop_id
+                    ) ? (
+                      <>
+                        <FaCheck />{" "}
+                        {item.workshop_name}
+                      </>
+                    ) : (
+                      item.workshop_name
+                    )}
                   </button>
                 </MenuItem>
               );

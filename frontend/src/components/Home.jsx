@@ -14,7 +14,7 @@ import notice from "../../public/notice.mp3";
 const Home = () => {
   const location = useLocation();
   const token = Cookies.get("authToken");
-  const spot = JSON.parse(localStorage.getItem("spot"));
+  // const spot = JSON.parse(localStorage.getItem("spot"));
   const { socket } = useSocketContext();
   const [accountSettings, setAccountSettings] = useState(null);
   const [chosenWorkshop] = useState(
@@ -25,6 +25,7 @@ const Home = () => {
   );
 
   const {
+    setFilteredOrders,
     data,
     toggleDialog,
     masterOrderInfo,
@@ -34,6 +35,7 @@ const Home = () => {
     setOrders,
     setProduct,
     setOrder,
+    filteredOrders
   } = useDataContext();
 
   const queryParams = new URLSearchParams(location.search);
@@ -70,172 +72,302 @@ const Home = () => {
     checkToken();
   }, [token, haveToken]);
 
+  // useEffect(() => {
+  //   const createOrder = (data) => {
+  //     if (data.from == "poster" && data.spotId == spot.spot_id) {
+  //       const sound = new Audio(notice);
+  //       sound.play();
+  //       toast.success(`Новый заказ № ${data.order.orderInformation.orderName}`);
+  //       let ordersLocalstorage =
+  //         JSON.parse(localStorage.getItem("historyOrders")) || [];
+
+  //       const findingOrderIndex = ordersLocalstorage.findIndex(
+  //         (item) => item.orderId === data.order.orderId
+  //       );
+
+  //       if (findingOrderIndex !== -1) {
+  //         ordersLocalstorage[findingOrderIndex] = data.order;
+  //       } else {
+  //         ordersLocalstorage.push(data.order);
+  //       }
+
+  //       localStorage.setItem(
+  //         "historyOrders",
+  //         JSON.stringify(ordersLocalstorage)
+  //       );
+
+  //       if (data.order.accountData.spotId == chosenSpot.spot_id) {
+  //         let filterWorkshop = data.order;
+
+  //         if (chosenWorkshop) {
+  //           let filteredTransactions;
+
+  //           // Handle chosenWorkshop if it's an array
+  //           if (Array.isArray(chosenWorkshop)) {
+  //             filteredTransactions = data.order.transaction.filter(
+  //               (transaction) =>
+  //                 chosenWorkshop.some(
+  //                   (workshop) =>
+  //                     workshop.workshop_id === transaction.workshop_id
+  //                 )
+  //             );
+  //           } else {
+  //             // Handle chosenWorkshop if it's a single object
+  //             filteredTransactions = data.order.transaction.filter(
+  //               (transaction) =>
+  //                 transaction.workshop_id === chosenWorkshop.workshop_id
+  //             );
+  //           }
+
+  //           filterWorkshop = {
+  //             ...data.order,
+  //             transaction: filteredTransactions,
+  //           };
+  //         }
+
+  //         setOrders((prevOrders) => [...prevOrders, filterWorkshop]);
+  //       }
+  //     }
+  //   };
+
+  //   const changingOrder = (data) => {
+  //     if (data.from == "poster" && data.spotId == spot.spot_id) {
+  //       const sound = new Audio(notice);
+  //       sound.play();
+  //       toast.success(
+  //         `Официант изменил заказ № ${data.order.orderInformation.orderName}`
+  //       );
+  //       let ordersLocalstorage =
+  //         JSON.parse(localStorage.getItem("historyOrders")) || [];
+
+  //       const findingOrderIndex = ordersLocalstorage.findIndex(
+  //         (item) => item.orderId === data.order.orderId
+  //       );
+
+  //       if (findingOrderIndex !== -1) {
+  //         ordersLocalstorage[findingOrderIndex] = data.order;
+  //       } else {
+  //         ordersLocalstorage.push(data.order);
+  //       }
+
+  //       localStorage.setItem(
+  //         "historyOrders",
+  //         JSON.stringify(ordersLocalstorage)
+  //       );
+
+  //       if (data.order.accountData.spotId == chosenSpot.spot_id) {
+  //         let filterWorkshop = data.order;
+
+  //         if (chosenWorkshop) {
+  //           let filteredTransactions;
+
+  //           if (Array.isArray(chosenWorkshop)) {
+  //             filteredTransactions = data.order.transaction.filter(
+  //               (transaction) =>
+  //                 chosenWorkshop.some(
+  //                   (workshop) =>
+  //                     workshop.workshop_id === transaction.workshop_id
+  //                 )
+  //             );
+  //           } else {
+  //             filteredTransactions = data.order.transaction.filter(
+  //               (transaction) =>
+  //                 transaction.workshop_id === chosenWorkshop.workshop_id
+  //             );
+  //           }
+
+  //           filterWorkshop = {
+  //             ...data.order,
+  //             transaction: filteredTransactions,
+  //           };
+  //         }
+
+  //         setOrders((prevOrders) =>
+  //           prevOrders.map((order) =>
+  //             order.orderId === data.order.orderId ? filterWorkshop : order
+  //           )
+  //         );
+  //       }
+  //     }
+  //   };
+
+  //   const changeAllOrder = (data) => {
+  //     if (
+  //       data.from === "backend" &&
+  //       data.data.accountData.spotId === spot.spot_id
+  //     ) {
+  //       let updatedOrder = data.data;
+  //       const { orderId } = data.data;
+
+  //       if (chosenWorkshop) {
+  //         let filteredTransactions;
+
+  //         if (Array.isArray(chosenWorkshop)) {
+  //           filteredTransactions = updatedOrder.transaction.filter(
+  //             (transaction) =>
+  //               chosenWorkshop.some(
+  //                 (workshop) => workshop.workshop_id === transaction.workshop_id
+  //               )
+  //           );
+  //         } else {
+  //           filteredTransactions = updatedOrder.transaction.filter(
+  //             (transaction) =>
+  //               transaction.workshop_id === chosenWorkshop.workshop_id
+  //           );
+  //         }
+
+  //         updatedOrder = {
+  //           ...updatedOrder,
+  //           transaction: filteredTransactions,
+  //         };
+  //       }
+
+  //       if (updatedOrder.item === "all") {
+  //         setOrders((prevOrders) =>
+  //           prevOrders.filter((order) => order.orderId !== orderId)
+  //         );
+  //       } else {
+  //         setOrders((prevOrders) =>
+  //           prevOrders.map((order) =>
+  //             order.orderId === orderId ? { ...updatedOrder } : order
+  //           )
+  //         );
+  //       }
+  //     }
+  //   };
+
+  //   const changeFromPoster = (data) => {
+  //     setOrders((prevOrders) =>
+  //       prevOrders.filter((order) => order.orderId !== data.orderId)
+  //     );
+  //   };
+
+  //   socket?.on("changeOrder", changeAllOrder);
+  //   socket?.on("deleteOrder", changeAllOrder);
+  //   socket?.on("deleteAllOrder", changeAllOrder);
+  //   socket?.on("deleteFromPoster", changeFromPoster);
+
+  //   socket?.on("createOrder", createOrder);
+  //   socket?.on("changeOrderDetails", changingOrder);
+
+  //   return () => {
+  //     socket?.off("createOrder", createOrder);
+  //     socket?.off("changeOrderDetails", changingOrder);
+  //     socket?.off("changeOrder", changeAllOrder);
+  //     socket?.off("deleteOrder", changeAllOrder);
+  //     socket?.off("deleteAllOrder", changeAllOrder);
+  //     socket?.off("deleteFromPoster", changeFromPoster);
+  //   };
+  // }, [socket]);
+
+  function applyWorkshopFilter(orders) {
+    if (!chosenWorkshop || chosenWorkshop.length === 0) {
+      return orders; // No workshop filtering needed
+    }
+  
+    const chosenWorkshopIds = Array.isArray(chosenWorkshop)
+      ? chosenWorkshop.map((workshop) => workshop.workshop_id)
+      : [chosenWorkshop.workshop_id];
+  
+    return orders.map((order) => {
+      const filteredTransactions = order.transaction.filter((transaction) => {
+        return chosenWorkshopIds.includes(transaction.workshop_id);
+      });
+  
+      return {
+        ...order,
+        transaction: filteredTransactions,
+      };
+    });
+  }
+  
+  // Function to update local storage with new or updated orders
+  function updateLocalStorage(order) {
+    let ordersLocalstorage = JSON.parse(localStorage.getItem("historyOrders")) || [];
+  
+    // Find the order with the same orderId in localStorage
+    const findingOrderIndex = ordersLocalstorage.findIndex((item) => item.orderId === order.orderId);
+  
+    if (findingOrderIndex !== -1) {
+      // If the order exists, replace it with the new order
+      ordersLocalstorage[findingOrderIndex] = order;
+    } else {
+      // If the order doesn't exist, push the new order to the array
+      ordersLocalstorage.push(order);
+    }
+  
+    // Update localStorage with the modified orders array
+    localStorage.setItem("historyOrders", JSON.stringify(ordersLocalstorage));
+  }
+  
   useEffect(() => {
     const createOrder = (data) => {
-      if (data.from == "poster" && data.spotId == spot.spot_id) {
+      if (data.from === "poster" && data.spotId == chosenSpot.spot_id) {
         const sound = new Audio(notice);
         sound.play();
         toast.success(`Новый заказ № ${data.order.orderInformation.orderName}`);
-        let ordersLocalstorage =
-          JSON.parse(localStorage.getItem("historyOrders")) || [];
-
-        // Find the order with the same _id in localStorage
-        const findingOrderIndex = ordersLocalstorage.findIndex(
-          (item) => item.orderId === data.order.orderId
-        );
-
-        if (findingOrderIndex !== -1) {
-          // If the order exists, replace it with the new order
-          ordersLocalstorage[findingOrderIndex] = data.order;
-        } else {
-          // If the order doesn't exist, push the new order to the array
-          ordersLocalstorage.push(data.order);
-        }
-
-        // Update localStorage with the modified orders array
-        localStorage.setItem(
-          "historyOrders",
-          JSON.stringify(ordersLocalstorage)
-        );
-
-        // Since data.order is a single object, we check the spotId directly
-        if (data.order.accountData.spotId == chosenSpot.spot_id) {
-          let filterWorkshop = data.order;
-
-          // Filter transactions based on the chosen workshop if applicable
-          if (chosenWorkshop) {
-            const filteredTransactions = data.order.transaction.filter(
-              (transaction) => {
-                return transaction.workshop_id == chosenWorkshop.workshop_id;
-              }
-            );
-
-            // Update the order to only include the filtered transactions
-            filterWorkshop = {
-              ...data.order,
-              transaction: filteredTransactions,
-            };
-          }
-
-          // Add the new order to the existing orders
-          setOrders((prevOrders) => [...prevOrders, filterWorkshop]);
-        }
+  
+        // Call updateLocalStorage to handle the new order
+        updateLocalStorage(data.order);
+  
+        let newOrder = data.order;
+        newOrder = applyWorkshopFilter([newOrder])[0]; // Filter the order's transactions if needed
+  
+        setOrders((prevOrders) => [...prevOrders, newOrder]);
       }
     };
-
+  
     const changingOrder = (data) => {
-      if (data.from == "poster" && data.spotId == spot.spot_id) {
+      if (data.from === "poster" && data.spotId == chosenSpot.spot_id) {
         const sound = new Audio(notice);
         sound.play();
-        toast.success(
-          `Офицант изменил заказ № ${data.order.orderInformation.orderName}`
+        toast.success(`Официант изменил заказ № ${data.order.orderInformation.orderName}`);
+  
+        // Call updateLocalStorage to handle the updated order
+        updateLocalStorage(data.order);
+  
+        let updatedOrder = data.order;
+        updatedOrder = applyWorkshopFilter([updatedOrder])[0]; // Apply workshop filtering
+  
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.orderId === data.order.orderId ? { ...order, ...updatedOrder } : order
+          )
         );
-        let ordersLocalstorage =
-          JSON.parse(localStorage.getItem("historyOrders")) || [];
-
-        // Find the order with the same _id in localStorage
-        const findingOrderIndex = ordersLocalstorage.findIndex(
-          (item) => item.orderId === data.order.orderId
-        );
-
-        if (findingOrderIndex !== -1) {
-          // If the order exists, replace it with the new order
-          ordersLocalstorage[findingOrderIndex] = data.order;
-        } else {
-          // If the order doesn't exist, push the new order to the array
-          ordersLocalstorage.push(data.order);
-        }
-
-        // Update localStorage with the modified orders array
-        localStorage.setItem(
-          "historyOrders",
-          JSON.stringify(ordersLocalstorage)
-        );
-        // Since data.order is a single object, check the spotId directly
-        if (data.order.accountData.spotId == chosenSpot.spot_id) {
-          let filterWorkshop = data.order;
-
-          // Filter transactions based on the chosen workshop if applicable
-          if (chosenWorkshop) {
-            const filteredTransactions = data.order.transaction.filter(
-              (transaction) => {
-                return transaction.workshop_id == chosenWorkshop.workshop_id;
-              }
-            );
-
-            // Update the order to only include the filtered transactions
-            filterWorkshop = {
-              ...data.order,
-              transaction: filteredTransactions,
-            };
-          }
-
-          // Update the order in the state by matching the orderId
-          setOrders((prevOrders) =>
-            prevOrders.map(
-              (order) =>
-                order.orderId === data.order.orderId
-                  ? { ...order, ...filterWorkshop } // Update the order with new data
-                  : order // Keep the same order if the ID does not match
-            )
-          );
-        }
       }
     };
-
+  
     const changeAllOrder = (data) => {
-      if (
-        data.from === "backend" &&
-        data.data.accountData.spotId === spot.spot_id
-      ) {
+      if (data.from === "backend" && data.data.accountData.spotId === chosenSpot.spot_id) {
         let updatedOrder = data.data;
-        const { orderId } = data.data;
-        console.log(data);
-
-        // Filter transactions based on the chosen workshop if applicable
-        if (chosenWorkshop) {
-          const filteredTransactions = updatedOrder.transaction.filter(
-            (transaction) =>
-              transaction.workshop_id === chosenWorkshop.workshop_id
-          );
-
-          // Update the order to only include the filtered transactions
-          updatedOrder = {
-            ...updatedOrder,
-            transaction: filteredTransactions,
-          };
-        }
-
-        // Remove the order if the `item` is "all"
+        updatedOrder = applyWorkshopFilter([updatedOrder])[0]; // Filter transactions
+  
         if (updatedOrder.item === "all") {
           setOrders((prevOrders) =>
-            prevOrders.filter((order) => order.orderId !== orderId)
+            prevOrders.filter((order) => order.orderId !== updatedOrder.orderId)
           );
         } else {
-          // Update the order in the state by matching the orderId
           setOrders((prevOrders) =>
             prevOrders.map((order) =>
-              order.orderId === orderId ? { ...updatedOrder } : order
+              order.orderId === updatedOrder.orderId ? { ...updatedOrder } : order
             )
           );
         }
       }
     };
-
+  
     const changeFromPoster = (data) => {
-      setOrders((prevOrders) =>
-        prevOrders.filter((order) => order.orderId != data.orderId)
-      );
+      setOrders((prevOrders) => prevOrders.filter((order) => order.orderId != data.orderId));
     };
-
+  
+    // Socket listeners
+    socket?.on("createOrder", createOrder);
+    socket?.on("changeOrderDetails", changingOrder);
     socket?.on("changeOrder", changeAllOrder);
     socket?.on("deleteOrder", changeAllOrder);
     socket?.on("deleteAllOrder", changeAllOrder);
     socket?.on("deleteFromPoster", changeFromPoster);
-
-    socket?.on("createOrder", createOrder);
-    socket?.on("changeOrderDetails", changingOrder);
-
+  
     return () => {
       socket?.off("createOrder", createOrder);
       socket?.off("changeOrderDetails", changingOrder);
@@ -245,6 +377,7 @@ const Home = () => {
       socket?.off("deleteFromPoster", changeFromPoster);
     };
   }, [socket]);
+
 
   const closeTransaction = async (orderId, order) => {
     try {
@@ -371,13 +504,12 @@ const Home = () => {
     );
   }
 
-  console.log(orders);
   return (
     <main className="h-[calc(100vh-48px)]">
       {isOpen && <DialogPopup />}
 
       <section className="w-11/12 py-8 mx-auto grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 place-items-start">
-        {orders.map((order) => {
+        {filteredOrders.map((order) => {
           const nameWaiter = data.find(
             (item) => item?.user_id == order.orderInformation?.userId
           );

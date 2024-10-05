@@ -51,6 +51,7 @@ const ProtectedRoute = ({ element }) => {
   return token || haveToken ? element : null;
 };
 
+
 function App() {
   const [screenSize, setScreenSize] = useState(600);
 

@@ -19,6 +19,16 @@ const truncateText = (text, wordLimit) => {
 
   return text.length > wordLimit ? `${text.substring(0, wordLimit)}...` : text;
 };
+
+const filterOrders = (orders) => {
+  return orders.filter((order) => {
+    return order.transaction.some((transaction) => {
+      return transaction.commentItems.some((item) => {
+        return item.status === "cooking" && item.count > 0;
+      });
+    });
+  }); 
+}
 // utils.js or wherever your truncateText function is defined
 
-export { navbarItems, formatTimeFromNumber, truncateText };
+export { navbarItems, formatTimeFromNumber, truncateText, filterOrders };

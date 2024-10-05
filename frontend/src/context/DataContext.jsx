@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { filterOrders } from "../utils";
 
 export const DataContext = createContext();
 
@@ -36,6 +37,7 @@ export const DataContextProvider = ({ children }) => {
   });
   const [data, setData] = useState([]);
   const accountData = JSON.parse(localStorage.getItem("accountSettings"));
+  const [filteredOrders, setFilteredOrders] = useState([]);
 
   const toggleDialog = () => {
     setIsOpen((prev) => !prev);
@@ -47,6 +49,7 @@ export const DataContextProvider = ({ children }) => {
   const masterBarInfo = (data) => {
     setBarInfo(data);
   };
+  
   async function getOrders() {
     if (accountSettings && chosenSpot) {
       try {
@@ -64,19 +67,30 @@ export const DataContextProvider = ({ children }) => {
 
         let filterWorkshop = filteredOrders;
 
-        if (chosenWorkshop) {
+        if (chosenWorkshop && chosenWorkshop.length > 0) {
+          console.log("it works")
+          // Extract workshop IDs from the array of workshop objects
+          const chosenWorkshopIds = chosenWorkshop.map(
+            (workshop) => workshop.workshop_id
+          );
+
+          // Filter the orders based on the chosen workshops
           filterWorkshop = filteredOrders.map((order) => {
             const filteredTransactions = order.transaction.filter(
               (transaction) => {
-                return transaction.workshop_id == chosenWorkshop.workshop_id;
+                // Check if the current transaction's workshop_id exists in chosenWorkshopIds array
+                return chosenWorkshopIds.includes(transaction.workshop_id);
               }
             );
 
+            // Return a new order object with filtered transactions
             return {
               ...order,
               transaction: filteredTransactions,
             };
           });
+        } else {
+          filterWorkshop = filteredOrders; // If no chosenWorkshop, keep the original filteredOrders
         }
 
         // filterWorkshop.map((order) => {
@@ -96,6 +110,8 @@ export const DataContextProvider = ({ children }) => {
         // });
 
         setOrders(filterWorkshop);
+        const res = filterOrders(filterWorkshop);
+        setFilteredOrders(res);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }
@@ -119,6 +135,22 @@ export const DataContextProvider = ({ children }) => {
   useEffect(() => {
     Promise.all([getOrders(), fetchData()]);
   }, [accountSettings]); // Updated dependencies
+
+  useEffect(() => {
+    function filterOrders(orders) {
+      return orders.filter((order) => {
+        return order.transaction.some((transaction) => {
+          return transaction.commentItems.some((item) => {
+            return item.status === "cooking" && item.count > 0;
+          });
+        });
+      });
+    }
+
+    // Update filteredOrders state with the filtered orders
+    const result = filterOrders(orders);
+    setFilteredOrders(result);
+  }, [orders]);
 
   useEffect(() => {
     // Handler for when the browser goes offline
@@ -169,7 +201,9 @@ export const DataContextProvider = ({ children }) => {
         setLoading,
         orders,
         setOrders,
-        getOrders
+        getOrders,
+        filteredOrders,
+        setFilteredOrders,
       }}
     >
       {children}

@@ -101,209 +101,309 @@ const DialogPopup = () => {
   // };
 
 
+  // const deleteItem = async (orderId, item, status, count) => {
+  //   try {
+  //     const productChangeStatus = await axios.put(
+  //       `${import.meta.env.VITE_BACKEND}/changeOrderStatus/${orderId}`,
+  //       { item, order, token, status, count }
+  //     );
+
+  //     const updatedTransactions =
+  //       productChangeStatus.data.updatedOrderMe.transaction;
+
+  //     if (!updatedTransactions || !Array.isArray(updatedTransactions)) {
+  //       throw new Error("Invalid response from the server.");
+  //     }
+
+  //     setOrders((prevOrders) =>
+  //       prevOrders.map((order) =>
+  //         order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+  //           ? { ...order, ...productChangeStatus.data.updatedOrderMe }
+  //           : order
+  //       )
+  //     );
+
+  //     // setOrders((prevOrders) => {
+  //     //   return prevOrders.map((order) => {
+  //     //     if (
+  //     //       order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+  //     //     ) {
+  //     //       return {
+  //     //         ...order,
+  //     //         transaction: order.transaction.map((transaction) => {
+  //     //           const updatedTransaction = updatedTransactions.find(
+  //     //             (updatedTran) =>
+  //     //               updatedTran.workshop_id === transaction.workshop_id
+  //     //           );
+
+  //     //           if (!updatedTransaction) {
+  //     //             return transaction;
+  //     //           }
+
+  //     //           return {
+  //     //             ...transaction,
+  //     //             commentItems: transaction.commentItems
+  //     //               .map((commentItem) => {
+  //     //                 const updatedItem = updatedTransaction.commentItems.find(
+  //     //                   (updatedItem) =>
+  //     //                     updatedItem.product_id === commentItem.product_id
+  //     //                 );
+  //     //                 if (updatedItem) {
+  //     //                   return { ...commentItem, status: updatedItem.status };
+  //     //                 }
+  //     //                 return commentItem;
+  //     //               })
+  //     //               .filter((commentItem) =>
+  //     //                 updatedTransaction.commentItems.some(
+  //     //                   (updatedItem) =>
+  //     //                     updatedItem.product_id === commentItem.product_id
+  //     //                 )
+  //     //               ),
+  //     //           };
+  //     //         }),
+  //     //       };
+  //     //     }
+  //     //     return order;
+  //     //   });
+  //     // });
+
+  //     if (status == "finished") {
+  //       socket.emit("frontData", {
+  //         ...productChangeStatus.data.updatedOrderMe,
+  //         item,
+  //         status,
+  //       });
+  //     } else {
+  //       socket.emit("deleteItem", {
+  //         ...productChangeStatus.data.updatedOrderMe,
+  //         item,
+  //         status,
+  //         count
+  //       });
+  //     }
+
+  //     // Set loading state to false after updating orders
+  //     setLoading({
+  //       orderId: 0,
+  //       productId: 0,
+  //       loading: false,
+  //     });
+
+  //     // console.log("updating", productChangeStatus.data.updatedOrderMe);
+
+  //     if (chosenWorkshop == null) {
+  //       const checkAllCommentItems = async (order) => {
+  //         // Check if all commentItems arrays are empty
+  //         const allEmpty = order.data.updatedOrderMe.transaction.every(
+  //           (transactionItem) => transactionItem.commentItems.length === 0
+  //         );
+
+  //         // Output 0 if all are empty, otherwise 1
+  //         if (allEmpty) {
+  //           const response = await axios.delete(
+  //             `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+  //           );
+  //           console.log("baaack", response.data);
+
+  //           // Update state to remove the closed order
+  //           setOrders((prevOrders) =>
+  //             prevOrders.filter((order) => order.orderId !== orderId)
+  //           );
+
+  //           socket.emit("frontData", {
+  //             ...order.data.updatedOrderMe,
+  //             item: "all",
+  //           });
+  //         }
+  //       };
+
+  //       // Calling the function with the sample data
+  //       checkAllCommentItems(productChangeStatus);
+  //     } else {
+  //       const chosenWorkshopId = chosenWorkshop.workshop_id; // Extract workshop_id from chosenWorkshop
+
+  //       const index =
+  //         productChangeStatus.data.updatedOrderMe.transaction.findIndex(
+  //           (item) => item.workshop_id == chosenWorkshopId
+  //         );
+  //       if (
+  //         productChangeStatus.data.updatedOrderMe.transaction[index]
+  //           .commentItems.length == 0
+  //       ) {
+  //         setOrders((prevOrders) =>
+  //           prevOrders.filter(
+  //             (order) =>
+  //               order.orderId != productChangeStatus.data.updatedOrderMe.orderId
+  //           )
+  //         );
+  //       }
+  //       let filterWorkshop = productChangeStatus.data.updatedOrderMe;
+
+  //       // Filter transactions based on the chosen workshop if applicable
+  //       const filteredTransactions =
+  //         productChangeStatus.data.updatedOrderMe.transaction.filter(
+  //           (transaction) => {
+  //             return transaction.workshop_id == chosenWorkshop.workshop_id;
+  //           }
+  //         );
+
+  //       // Update the order to only include the filtered transactions
+  //       filterWorkshop = {
+  //         ...productChangeStatus.data.updatedOrderMe,
+  //         transaction: filteredTransactions,
+  //       };
+
+  //       // Update the order in the state by matching the orderId
+  //       setOrders((prevOrders) =>
+  //         prevOrders.map(
+  //           (order) =>
+  //             order.orderId === productChangeStatus.data.updatedOrderMe.orderId
+  //               ? { ...order, ...filterWorkshop } // Update the order with new data
+  //               : order // Keep the same order if the ID does not match
+  //         )
+  //       );
+  //     }
+
+  //     // if (chosenWorkshop) {
+  //     //   const chosenWorkshopId = chosenWorkshop.workshop_id; // Extract workshop_id from chosenWorkshop
+
+  //     //   const index =
+  //     //     productChangeStatus.data.updatedOrder.transaction.findIndex(
+  //     //       (item) => item.workshop_id == chosenWorkshopId
+  //     //     );
+  //     //   console.log("indexxxx", index);
+  //     //   console.log("ooooor", order.transaction);
+
+  //     //   if (order.transaction[index].commentItems.length == 0) {
+  //     //     const response = await axios.delete(
+  //     //       `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+  //     //     );
+
+  //     //     console.log("ressss:", response.data);
+
+  //     //     // Update state to remove the closed order
+  //     //     setOrders((prevOrders) =>
+  //     //       prevOrders.filter((order) => order.orderId != response.data.orderId)
+  //     //     );
+  //     //   }
+  //     // } else {
+  //     //   if (productChangeStatus.data.updatedOrder.transaction.length == 0) {
+  //     //     const response = await axios.delete(
+  //     //       `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+  //     //     );
+  //     //     console.log(response.data);
+
+  //     //     // Update state to remove the closed order
+  //     //     setOrders((prevOrders) =>
+  //     //       prevOrders.filter((order) => order.orderId !== orderId)
+  //     //     );
+  //     //   }
+  //     // }
+  //   } catch (error) {
+  //     console.error("Error updating status", error);
+  //   }
+  // };
+
   const deleteItem = async (orderId, item, status, count) => {
     try {
       const productChangeStatus = await axios.put(
         `${import.meta.env.VITE_BACKEND}/changeOrderStatus/${orderId}`,
         { item, order, token, status, count }
       );
-
-      const updatedTransactions =
-        productChangeStatus.data.updatedOrderMe.transaction;
-
-      if (!updatedTransactions || !Array.isArray(updatedTransactions)) {
+  
+      const updatedOrder = productChangeStatus.data.updatedOrderMe;
+  
+      if (!updatedOrder || !Array.isArray(updatedOrder.transaction)) {
         throw new Error("Invalid response from the server.");
       }
-
+  
+      // Determine workshop IDs based on whether chosenWorkshop is an array or a single object
+      let workshopIds = [];
+      if (chosenWorkshop) {
+        workshopIds = Array.isArray(chosenWorkshop)
+          ? chosenWorkshop.map((workshop) => workshop.workshop_id)
+          : [chosenWorkshop.workshop_id];
+      }
+  
+      // Filter transactions based on the workshop IDs if chosenWorkshop is provided
+      let filteredOrder = { ...updatedOrder };
+      if (workshopIds.length > 0) {
+        const filteredTransactions = updatedOrder.transaction.filter((transaction) =>
+          workshopIds.includes(transaction.workshop_id)
+        );
+        filteredOrder = { ...updatedOrder, transaction: filteredTransactions };
+      }
+  
+      // Update the orders state with the modified order
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.orderId === productChangeStatus.data.updatedOrderMe.orderId
-            ? { ...order, ...productChangeStatus.data.updatedOrderMe }
-            : order
+          order.orderId === updatedOrder.orderId ? { ...order, ...filteredOrder } : order
         )
       );
-
-      // setOrders((prevOrders) => {
-      //   return prevOrders.map((order) => {
-      //     if (
-      //       order.orderId === productChangeStatus.data.updatedOrderMe.orderId
-      //     ) {
-      //       return {
-      //         ...order,
-      //         transaction: order.transaction.map((transaction) => {
-      //           const updatedTransaction = updatedTransactions.find(
-      //             (updatedTran) =>
-      //               updatedTran.workshop_id === transaction.workshop_id
-      //           );
-
-      //           if (!updatedTransaction) {
-      //             return transaction;
-      //           }
-
-      //           return {
-      //             ...transaction,
-      //             commentItems: transaction.commentItems
-      //               .map((commentItem) => {
-      //                 const updatedItem = updatedTransaction.commentItems.find(
-      //                   (updatedItem) =>
-      //                     updatedItem.product_id === commentItem.product_id
-      //                 );
-      //                 if (updatedItem) {
-      //                   return { ...commentItem, status: updatedItem.status };
-      //                 }
-      //                 return commentItem;
-      //               })
-      //               .filter((commentItem) =>
-      //                 updatedTransaction.commentItems.some(
-      //                   (updatedItem) =>
-      //                     updatedItem.product_id === commentItem.product_id
-      //                 )
-      //               ),
-      //           };
-      //         }),
-      //       };
-      //     }
-      //     return order;
-      //   });
-      // });
-
-      if (status == "finished") {
+  
+      // Emit socket event based on the status
+      if (status === "finished") {
         socket.emit("frontData", {
-          ...productChangeStatus.data.updatedOrderMe,
+          ...updatedOrder,
           item,
           status,
         });
       } else {
         socket.emit("deleteItem", {
-          ...productChangeStatus.data.updatedOrderMe,
+          ...updatedOrder,
           item,
           status,
-          count
+          count,
         });
       }
-
+  
       // Set loading state to false after updating orders
       setLoading({
         orderId: 0,
         productId: 0,
         loading: false,
       });
-
-      console.log("updating", productChangeStatus.data.updatedOrderMe);
-
-      if (chosenWorkshop == null) {
-        const checkAllCommentItems = async (order) => {
-          // Check if all commentItems arrays are empty
-          const allEmpty = order.data.updatedOrderMe.transaction.every(
-            (transactionItem) => transactionItem.commentItems.length === 0
-          );
-
-          // Output 0 if all are empty, otherwise 1
-          if (allEmpty) {
-            const response = await axios.delete(
-              `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
-            );
-            console.log("baaack", response.data);
-
-            // Update state to remove the closed order
-            setOrders((prevOrders) =>
-              prevOrders.filter((order) => order.orderId !== orderId)
-            );
-
-            socket.emit("frontData", {
-              ...order.data.updatedOrderMe,
-              item: "all",
-            });
-          }
-        };
-
-        // Calling the function with the sample data
-        checkAllCommentItems(productChangeStatus);
-      } else {
-        const chosenWorkshopId = chosenWorkshop.workshop_id; // Extract workshop_id from chosenWorkshop
-
-        const index =
-          productChangeStatus.data.updatedOrderMe.transaction.findIndex(
-            (item) => item.workshop_id == chosenWorkshopId
-          );
-        if (
-          productChangeStatus.data.updatedOrderMe.transaction[index]
-            .commentItems.length == 0
-        ) {
+  
+      // Check if any transactions remain for the specified workshop(s)
+      if (workshopIds.length > 0) {
+        const hasRemainingItems = updatedOrder.transaction.some(
+          (transaction) =>
+            workshopIds.includes(transaction.workshop_id) &&
+            transaction.commentItems.length > 0
+        );
+  
+        if (!hasRemainingItems) {
+          // Remove the order if all chosen workshop transactions are empty
           setOrders((prevOrders) =>
-            prevOrders.filter(
-              (order) =>
-                order.orderId != productChangeStatus.data.updatedOrderMe.orderId
-            )
+            prevOrders.filter((order) => order.orderId !== updatedOrder.orderId)
           );
         }
-        let filterWorkshop = productChangeStatus.data.updatedOrderMe;
-
-        // Filter transactions based on the chosen workshop if applicable
-        const filteredTransactions =
-          productChangeStatus.data.updatedOrderMe.transaction.filter(
-            (transaction) => {
-              return transaction.workshop_id == chosenWorkshop.workshop_id;
-            }
-          );
-
-        // Update the order to only include the filtered transactions
-        filterWorkshop = {
-          ...productChangeStatus.data.updatedOrderMe,
-          transaction: filteredTransactions,
-        };
-
-        // Update the order in the state by matching the orderId
-        setOrders((prevOrders) =>
-          prevOrders.map(
-            (order) =>
-              order.orderId === productChangeStatus.data.updatedOrderMe.orderId
-                ? { ...order, ...filterWorkshop } // Update the order with new data
-                : order // Keep the same order if the ID does not match
-          )
+      } else {
+        // If no specific workshop is chosen, check if all transactions are empty
+        const allTransactionsEmpty = updatedOrder.transaction.every(
+          (transaction) => transaction.commentItems.length === 0
         );
+  
+        if (allTransactionsEmpty) {
+          await axios.delete(
+            `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
+          );
+  
+          // Remove the order from the state
+          setOrders((prevOrders) => prevOrders.filter((order) => order.orderId !== orderId));
+  
+          socket.emit("frontData", {
+            ...updatedOrder,
+            item: "all",
+          });
+        }
       }
-
-      // if (chosenWorkshop) {
-      //   const chosenWorkshopId = chosenWorkshop.workshop_id; // Extract workshop_id from chosenWorkshop
-
-      //   const index =
-      //     productChangeStatus.data.updatedOrder.transaction.findIndex(
-      //       (item) => item.workshop_id == chosenWorkshopId
-      //     );
-      //   console.log("indexxxx", index);
-      //   console.log("ooooor", order.transaction);
-
-      //   if (order.transaction[index].commentItems.length == 0) {
-      //     const response = await axios.delete(
-      //       `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
-      //     );
-
-      //     console.log("ressss:", response.data);
-
-      //     // Update state to remove the closed order
-      //     setOrders((prevOrders) =>
-      //       prevOrders.filter((order) => order.orderId != response.data.orderId)
-      //     );
-      //   }
-      // } else {
-      //   if (productChangeStatus.data.updatedOrder.transaction.length == 0) {
-      //     const response = await axios.delete(
-      //       `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
-      //     );
-      //     console.log(response.data);
-
-      //     // Update state to remove the closed order
-      //     setOrders((prevOrders) =>
-      //       prevOrders.filter((order) => order.orderId !== orderId)
-      //     );
-      //   }
-      // }
     } catch (error) {
       console.error("Error updating status", error);
     }
   };
 
+  
   if (!isDataLoaded) {
     return <Loader />;
   }
