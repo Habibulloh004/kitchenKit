@@ -49,7 +49,7 @@ export const DataContextProvider = ({ children }) => {
   const masterBarInfo = (data) => {
     setBarInfo(data);
   };
-  
+
   async function getOrders() {
     if (accountSettings && chosenSpot) {
       try {
@@ -68,7 +68,7 @@ export const DataContextProvider = ({ children }) => {
         let filterWorkshop = filteredOrders;
 
         if (chosenWorkshop && chosenWorkshop.length > 0) {
-          console.log("it works")
+          console.log("it works");
           // Extract workshop IDs from the array of workshop objects
           const chosenWorkshopIds = chosenWorkshop.map(
             (workshop) => workshop.workshop_id
@@ -109,9 +109,11 @@ export const DataContextProvider = ({ children }) => {
         //   return order; // Return the modified order with updated transactions
         // });
 
+        console.log("orders", filterWorkshop);
         setOrders(filterWorkshop);
         const res = filterOrders(filterWorkshop);
         setFilteredOrders(res);
+        console.log("filter", res);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }

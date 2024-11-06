@@ -98,7 +98,7 @@ const Workshops = () => {
                     }}
                     className="group flex w-full items-center gap-2 rounded-lg py-1.5 px-3 data-[focus]:bg-white/10"
                   >
-                    {chosenWorkshop.length && chosenWorkshop?.find(
+                    {chosenWorkshop && chosenWorkshop.length && chosenWorkshop?.find(
                       (workshop) => workshop.workshop_id == item.workshop_id
                     ) ? (
                       <>

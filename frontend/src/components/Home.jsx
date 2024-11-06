@@ -35,7 +35,7 @@ const Home = () => {
     setOrders,
     setProduct,
     setOrder,
-    filteredOrders
+    filteredOrders,
   } = useDataContext();
 
   const queryParams = new URLSearchParams(location.search);
@@ -264,30 +264,33 @@ const Home = () => {
     if (!chosenWorkshop || chosenWorkshop.length === 0) {
       return orders; // No workshop filtering needed
     }
-  
+
     const chosenWorkshopIds = Array.isArray(chosenWorkshop)
       ? chosenWorkshop.map((workshop) => workshop.workshop_id)
       : [chosenWorkshop.workshop_id];
-  
+
     return orders.map((order) => {
       const filteredTransactions = order.transaction.filter((transaction) => {
         return chosenWorkshopIds.includes(transaction.workshop_id);
       });
-  
+
       return {
         ...order,
         transaction: filteredTransactions,
       };
     });
   }
-  
+
   // Function to update local storage with new or updated orders
   function updateLocalStorage(order) {
-    let ordersLocalstorage = JSON.parse(localStorage.getItem("historyOrders")) || [];
-  
+    let ordersLocalstorage =
+      JSON.parse(localStorage.getItem("historyOrders")) || [];
+
     // Find the order with the same orderId in localStorage
-    const findingOrderIndex = ordersLocalstorage.findIndex((item) => item.orderId === order.orderId);
-  
+    const findingOrderIndex = ordersLocalstorage.findIndex(
+      (item) => item.orderId === order.orderId
+    );
+
     if (findingOrderIndex !== -1) {
       // If the order exists, replace it with the new order
       ordersLocalstorage[findingOrderIndex] = order;
@@ -295,53 +298,60 @@ const Home = () => {
       // If the order doesn't exist, push the new order to the array
       ordersLocalstorage.push(order);
     }
-  
+
     // Update localStorage with the modified orders array
     localStorage.setItem("historyOrders", JSON.stringify(ordersLocalstorage));
   }
-  
+
   useEffect(() => {
     const createOrder = (data) => {
       if (data.from === "poster" && data.spotId == chosenSpot.spot_id) {
         const sound = new Audio(notice);
         sound.play();
         toast.success(`Новый заказ № ${data.order.orderInformation.orderName}`);
-  
+
         // Call updateLocalStorage to handle the new order
         updateLocalStorage(data.order);
-  
+
         let newOrder = data.order;
         newOrder = applyWorkshopFilter([newOrder])[0]; // Filter the order's transactions if needed
-  
+
         setOrders((prevOrders) => [...prevOrders, newOrder]);
       }
     };
-  
+
     const changingOrder = (data) => {
       if (data.from === "poster" && data.spotId == chosenSpot.spot_id) {
         const sound = new Audio(notice);
         sound.play();
-        toast.success(`Официант изменил заказ № ${data.order.orderInformation.orderName}`);
-  
+        toast.success(
+          `Официант изменил заказ № ${data.order.orderInformation.orderName}`
+        );
+
         // Call updateLocalStorage to handle the updated order
         updateLocalStorage(data.order);
-  
+
         let updatedOrder = data.order;
         updatedOrder = applyWorkshopFilter([updatedOrder])[0]; // Apply workshop filtering
-  
+
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
-            order.orderId === data.order.orderId ? { ...order, ...updatedOrder } : order
+            order.orderId === data.order.orderId
+              ? { ...order, ...updatedOrder }
+              : order
           )
         );
       }
     };
-  
+
     const changeAllOrder = (data) => {
-      if (data.from === "backend" && data.data.accountData.spotId === chosenSpot.spot_id) {
+      if (
+        data.from === "backend" &&
+        data.data.accountData.spotId === chosenSpot.spot_id
+      ) {
         let updatedOrder = data.data;
         updatedOrder = applyWorkshopFilter([updatedOrder])[0]; // Filter transactions
-  
+
         if (updatedOrder.item === "all") {
           setOrders((prevOrders) =>
             prevOrders.filter((order) => order.orderId !== updatedOrder.orderId)
@@ -349,17 +359,21 @@ const Home = () => {
         } else {
           setOrders((prevOrders) =>
             prevOrders.map((order) =>
-              order.orderId === updatedOrder.orderId ? { ...updatedOrder } : order
+              order.orderId === updatedOrder.orderId
+                ? { ...updatedOrder }
+                : order
             )
           );
         }
       }
     };
-  
+
     const changeFromPoster = (data) => {
-      setOrders((prevOrders) => prevOrders.filter((order) => order.orderId != data.orderId));
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order.orderId != data.orderId)
+      );
     };
-  
+
     // Socket listeners
     socket?.on("createOrder", createOrder);
     socket?.on("changeOrderDetails", changingOrder);
@@ -367,7 +381,7 @@ const Home = () => {
     socket?.on("deleteOrder", changeAllOrder);
     socket?.on("deleteAllOrder", changeAllOrder);
     socket?.on("deleteFromPoster", changeFromPoster);
-  
+
     return () => {
       socket?.off("createOrder", createOrder);
       socket?.off("changeOrderDetails", changingOrder);
@@ -377,7 +391,6 @@ const Home = () => {
       socket?.off("deleteFromPoster", changeFromPoster);
     };
   }, [socket]);
-
 
   const closeTransaction = async (orderId, order) => {
     try {
@@ -534,7 +547,13 @@ const Home = () => {
                   </p>
                   <span className="text-base text-gray-600 flex flex-col items-end">
                     <p>{nameWaiter && nameWaiter.name}</p>
-                    <p>Стол {order.orderInformation.tableName?.table_num}</p>
+                    <p>
+                      {order.orderInformation.serviceMode == 1
+                        ? `Стол ${order.orderInformation.tableName?.table_num}`
+                        : order.orderInformation.serviceMode == 2
+                        ? "Самовывоз"
+                        : "Доставка"}
+                    </p>
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
@@ -659,12 +678,12 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
       }
     >
       <div className="flex gap-3 p-3 justify-between">
-        <p className="font-semibold text-xl">
+        <p className="font-semibold text-xl w-[10%]">
           {product.status == "deleted" && "-"}
           {product.count}
         </p>
-        <div className="flex justify-between items-start gap-5 w-3/4">
-          <span className="space-y-2">
+        <div className="flex justify-between items-start gap-5 w-[89%]">
+          <span className="space-y-2 w-[80%]">
             <p className="font-semibold text-lg">
               {product?.product_name}{" "}
               {`${
@@ -672,7 +691,7 @@ function ProductTimer({ product, orderTime, onClickHandler }) {
               }`}
             </p>
           </span>
-          <p className="text-gray-800 font-semibold">
+          <p className="text-gray-800 font-semibold w-[15%]">
             {product.status != "deleted" &&
               product.cooking_time &&
               formatTime(remainingTime)}

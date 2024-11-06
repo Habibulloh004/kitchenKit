@@ -100,7 +100,6 @@ const DialogPopup = () => {
   //   }
   // };
 
-
   // const deleteItem = async (orderId, item, status, count) => {
   //   try {
   //     const productChangeStatus = await axios.put(
@@ -310,13 +309,13 @@ const DialogPopup = () => {
         `${import.meta.env.VITE_BACKEND}/changeOrderStatus/${orderId}`,
         { item, order, token, status, count }
       );
-  
+
       const updatedOrder = productChangeStatus.data.updatedOrderMe;
-  
+
       if (!updatedOrder || !Array.isArray(updatedOrder.transaction)) {
         throw new Error("Invalid response from the server.");
       }
-  
+
       // Determine workshop IDs based on whether chosenWorkshop is an array or a single object
       let workshopIds = [];
       if (chosenWorkshop) {
@@ -324,23 +323,25 @@ const DialogPopup = () => {
           ? chosenWorkshop.map((workshop) => workshop.workshop_id)
           : [chosenWorkshop.workshop_id];
       }
-  
+
       // Filter transactions based on the workshop IDs if chosenWorkshop is provided
       let filteredOrder = { ...updatedOrder };
       if (workshopIds.length > 0) {
-        const filteredTransactions = updatedOrder.transaction.filter((transaction) =>
-          workshopIds.includes(transaction.workshop_id)
+        const filteredTransactions = updatedOrder.transaction.filter(
+          (transaction) => workshopIds.includes(transaction.workshop_id)
         );
         filteredOrder = { ...updatedOrder, transaction: filteredTransactions };
       }
-  
+
       // Update the orders state with the modified order
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.orderId === updatedOrder.orderId ? { ...order, ...filteredOrder } : order
+          order.orderId === updatedOrder.orderId
+            ? { ...order, ...filteredOrder }
+            : order
         )
       );
-  
+
       // Emit socket event based on the status
       if (status === "finished") {
         socket.emit("frontData", {
@@ -356,14 +357,14 @@ const DialogPopup = () => {
           count,
         });
       }
-  
+
       // Set loading state to false after updating orders
       setLoading({
         orderId: 0,
         productId: 0,
         loading: false,
       });
-  
+
       // Check if any transactions remain for the specified workshop(s)
       if (workshopIds.length > 0) {
         const hasRemainingItems = updatedOrder.transaction.some(
@@ -371,7 +372,7 @@ const DialogPopup = () => {
             workshopIds.includes(transaction.workshop_id) &&
             transaction.commentItems.length > 0
         );
-  
+
         if (!hasRemainingItems) {
           // Remove the order if all chosen workshop transactions are empty
           setOrders((prevOrders) =>
@@ -383,15 +384,17 @@ const DialogPopup = () => {
         const allTransactionsEmpty = updatedOrder.transaction.every(
           (transaction) => transaction.commentItems.length === 0
         );
-  
+
         if (allTransactionsEmpty) {
           await axios.delete(
             `${import.meta.env.VITE_BACKEND}/closeTransaction/${orderId}`
           );
-  
+
           // Remove the order from the state
-          setOrders((prevOrders) => prevOrders.filter((order) => order.orderId !== orderId));
-  
+          setOrders((prevOrders) =>
+            prevOrders.filter((order) => order.orderId !== orderId)
+          );
+
           socket.emit("frontData", {
             ...updatedOrder,
             item: "all",
@@ -403,7 +406,6 @@ const DialogPopup = () => {
     }
   };
 
-  
   if (!isDataLoaded) {
     return <Loader />;
   }
@@ -459,16 +461,16 @@ const DialogPopup = () => {
               <section className="space-y-2">
                 <ul className="flex justify-between border-b border-gray-400 py-3">
                   <li className="w-1/2">Инградиенты </li>
-                  <li className="w-2/12">Нетто </li>
+                  <li className="w-2/12">Брутто </li>
                   <li className="w-3/12">Метод приготовления </li>
-                  <li className="w-2/12 text-right">Брутто </li>
+                  <li className="w-2/12 text-right">Нетто </li>
                 </ul>
                 <div className="space-y-3 h-60 overflow-y-scroll">
                   {orderInfo.ingredients.map((item, idx) => (
                     <ul key={idx} className="flex justify-between">
                       <li className="w-1/2">{item.ingredient_name}</li>
                       <li className="w-2/12">
-                        {item.structure_netto}{" "}
+                        {parseFloat(item.structure_brutto)}{" "}
                         {item.structure_unit == "g"
                           ? "г"
                           : item.structure_unit == "l"
@@ -479,7 +481,7 @@ const DialogPopup = () => {
                       </li>
                       <li className="w-3/12"></li>
                       <li className="w-2/12 text-right">
-                        {parseFloat(item.structure_brutto)}{" "}
+                        {item.structure_netto}{" "}
                         {item.structure_unit == "g"
                           ? "г"
                           : item.structure_unit == "l"
